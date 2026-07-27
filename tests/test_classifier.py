@@ -1,7 +1,6 @@
 from src.classifier import classify_email
-from src.config import PromptConfig
-from pathlib import Path
-import yaml
+from src.services.load_configs import load_prompt_config
+import asyncio
 
 TEST_BILLING = """
 Subject: Cancel subscription renewal
@@ -34,25 +33,15 @@ Could you provide more information about your service and how it works? I would 
 Thank you.
 """
 
-def load_prompt_config(path: str | Path) -> PromptConfig:
-    path = Path(path)
-    if not path.exists():
-        raise FileNotFoundError(f"Prompt configuration file not found: {path}")
-    
-    with open(path, "r") as f:
-        raw_data = yaml.safe_load(f)
 
-    return PromptConfig(**raw_data)
-
-
-def run_tests():
+async def run_tests():
     config = load_prompt_config("./prompts/v1_classifier.yaml")
 
-    print("Billing Test:", classify_email(TEST_BILLING, config))
-    print("Account Test:", classify_email(TEST_ACCOUNT, config))
-    print("Technical Test:", classify_email(TEST_TECHNICAL, config))
-    print("General Test:", classify_email(TEST_GENERAL, config))
+    print("Billing Test:", await classify_email(TEST_BILLING, config))
+    print("Account Test:", await classify_email(TEST_ACCOUNT, config))
+    print("Technical Test:", await classify_email(TEST_TECHNICAL, config))
+    print("General Test:", await classify_email(TEST_GENERAL, config))
 
 
 if __name__ == "__main__":
-    run_tests()
+    asyncio.run(run_tests())
