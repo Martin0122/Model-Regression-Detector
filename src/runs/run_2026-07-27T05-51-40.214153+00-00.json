@@ -1,0 +1,461 @@
+{
+  "run_metadata": {
+    "run_id": "run_2026-07-27T05:51:40.214153+00:00",
+    "prompt_version": "v1",
+    "model": "gpt-4o-mini",
+    "judge_model": "gpt-4o-mini",
+    "timestamp": "2026-07-27T05:51:40.214187+00:00"
+  },
+  "results": [
+    {
+      "test_case_id": "tc_001",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.33,
+      "prompt_tokens": 382,
+      "completion_tokens": 25,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_002",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.14,
+      "prompt_tokens": 381,
+      "completion_tokens": 27,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_003",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.09,
+      "prompt_tokens": 386,
+      "completion_tokens": 28,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_004",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.55,
+      "prompt_tokens": 374,
+      "completion_tokens": 24,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_005",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.12,
+      "prompt_tokens": 387,
+      "completion_tokens": 32,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_006",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.08,
+      "prompt_tokens": 362,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_007",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.08,
+      "prompt_tokens": 378,
+      "completion_tokens": 24,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_008",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.07,
+      "prompt_tokens": 380,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_009",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.23,
+      "prompt_tokens": 384,
+      "completion_tokens": 29,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_010",
+      "category_match": true,
+      "summary_score": 5,
+      "latency_seconds": 1.24,
+      "prompt_tokens": 383,
+      "completion_tokens": 22,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_011",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.19,
+      "prompt_tokens": 387,
+      "completion_tokens": 27,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_012",
+      "category_match": false,
+      "summary_score": 1,
+      "latency_seconds": 0.73,
+      "prompt_tokens": 366,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_013",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.75,
+      "prompt_tokens": 360,
+      "completion_tokens": 19,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_014",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.8,
+      "prompt_tokens": 362,
+      "completion_tokens": 16,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_015",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.64,
+      "prompt_tokens": 373,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_016",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.66,
+      "prompt_tokens": 372,
+      "completion_tokens": 21,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_017",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.45,
+      "prompt_tokens": 372,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_018",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.15,
+      "prompt_tokens": 364,
+      "completion_tokens": 17,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_019",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.1,
+      "prompt_tokens": 371,
+      "completion_tokens": 21,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_020",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.08,
+      "prompt_tokens": 372,
+      "completion_tokens": 24,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_021",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.86,
+      "prompt_tokens": 361,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_022",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.87,
+      "prompt_tokens": 368,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_023",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.98,
+      "prompt_tokens": 377,
+      "completion_tokens": 21,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_024",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.92,
+      "prompt_tokens": 392,
+      "completion_tokens": 27,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_025",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 0.82,
+      "prompt_tokens": 365,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_026",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.99,
+      "prompt_tokens": 360,
+      "completion_tokens": 21,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_027",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.92,
+      "prompt_tokens": 374,
+      "completion_tokens": 24,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_028",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 1.34,
+      "prompt_tokens": 369,
+      "completion_tokens": 25,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_029",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.96,
+      "prompt_tokens": 367,
+      "completion_tokens": 19,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_030",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.81,
+      "prompt_tokens": 369,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_031",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.82,
+      "prompt_tokens": 364,
+      "completion_tokens": 24,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_032",
+      "category_match": false,
+      "summary_score": 3,
+      "latency_seconds": 3.08,
+      "prompt_tokens": 362,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_033",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 3.64,
+      "prompt_tokens": 370,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_034",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.94,
+      "prompt_tokens": 366,
+      "completion_tokens": 21,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_035",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.88,
+      "prompt_tokens": 363,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_036",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 2.8,
+      "prompt_tokens": 364,
+      "completion_tokens": 17,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_037",
+      "category_match": false,
+      "summary_score": 2,
+      "latency_seconds": 0.78,
+      "prompt_tokens": 372,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_038",
+      "category_match": true,
+      "summary_score": 5,
+      "latency_seconds": 0.73,
+      "prompt_tokens": 362,
+      "completion_tokens": 18,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_039",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.96,
+      "prompt_tokens": 364,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_040",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.87,
+      "prompt_tokens": 369,
+      "completion_tokens": 21,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_041",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 3.99,
+      "prompt_tokens": 371,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_042",
+      "category_match": false,
+      "summary_score": 4,
+      "latency_seconds": 0.81,
+      "prompt_tokens": 363,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_043",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.94,
+      "prompt_tokens": 360,
+      "completion_tokens": 21,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_044",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 3.19,
+      "prompt_tokens": 368,
+      "completion_tokens": 23,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_045",
+      "category_match": false,
+      "summary_score": 4,
+      "latency_seconds": 0.83,
+      "prompt_tokens": 373,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_046",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.86,
+      "prompt_tokens": 367,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_047",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.79,
+      "prompt_tokens": 370,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_048",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.01,
+      "prompt_tokens": 368,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_049",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.04,
+      "prompt_tokens": 361,
+      "completion_tokens": 27,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_050",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.75,
+      "prompt_tokens": 379,
+      "completion_tokens": 21,
+      "passed": false
+    }
+  ]
+}

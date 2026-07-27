@@ -1,11 +1,7 @@
-from .llm_client import client
+
 from .config import PromptConfig, ClassificationOutput
-import sys
-import yaml
 from openai.types.responses import ResponseInputParam
-from datetime import datetime
 from typing import cast
-import uuid
 
 
 def build_messages(email: str, config: PromptConfig) -> list[dict[str, str]]:
@@ -40,28 +36,33 @@ def build_messages(email: str, config: PromptConfig) -> list[dict[str, str]]:
     return messages
 
 
-def classify_email(
+async def classify_email(
     email: str,
     config: PromptConfig,
     llm_client=None,
-) -> ClassificationOutput:
+) -> dict:
     if llm_client is None:
-        from .llm_client import client as llm_client
+        from .clients.llm_client import client as llm_client
 
-    response = llm_client.responses.parse(
+    response = await llm_client.responses.parse(
         model=config.model,
         input=cast(ResponseInputParam, build_messages(email, config)),
         text_format=ClassificationOutput,
     )
 
-    yaml_file = {
-        "version": str(uuid.uuid4()),
-        "timestamp": datetime.now(),
-        "system_prompt": config.system_prompt,
-        "few_shot_examples": config.few_shot_examples
-    }
-
     if not response.output_parsed:
         raise ValueError("Model did not return valid classification output.")
+    
+    input_tokens = response.usage.input_tokens if response.usage else -1
+    output_tokens = response.usage.output_tokens if response.usage else -1
+    category = response.output_parsed.category
+    summary = response.output_parsed.summary
+    
+    result = {
+        "category": category,
+        "summary": summary,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens
+    }
 
-    return response.output_parsed
+    return result

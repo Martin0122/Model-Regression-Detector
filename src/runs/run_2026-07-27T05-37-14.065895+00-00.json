@@ -1,0 +1,461 @@
+{
+  "run_metadata": {
+    "run_id": "run_2026-07-27T05:37:14.065895+00:00",
+    "prompt_version": "v1",
+    "model": "gpt-4o-mini",
+    "judge_model": "gpt-4o-mini",
+    "timestamp": "2026-07-27T05:37:14.066333+00:00"
+  },
+  "results": [
+    {
+      "test_case_id": "tc_001",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.3982752920128405,
+      "prompt_tokens": 382,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_002",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.0924816660117358,
+      "prompt_tokens": 381,
+      "completion_tokens": 28,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_003",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 1.7152070000302047,
+      "prompt_tokens": 386,
+      "completion_tokens": 28,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_004",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.0411827079951763,
+      "prompt_tokens": 374,
+      "completion_tokens": 27,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_005",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.1274593751877546,
+      "prompt_tokens": 387,
+      "completion_tokens": 25,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_006",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.0261688330210745,
+      "prompt_tokens": 362,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_007",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.026740417117253,
+      "prompt_tokens": 378,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_008",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.0402682500425726,
+      "prompt_tokens": 380,
+      "completion_tokens": 27,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_009",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 2.1981330420821905,
+      "prompt_tokens": 384,
+      "completion_tokens": 29,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_010",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.017765291966498,
+      "prompt_tokens": 383,
+      "completion_tokens": 21,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_011",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.7262363750487566,
+      "prompt_tokens": 387,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_012",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.8708316248375922,
+      "prompt_tokens": 366,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_013",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 1.2698570000939071,
+      "prompt_tokens": 360,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_014",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.8217997080646455,
+      "prompt_tokens": 362,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_015",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.8319910420104861,
+      "prompt_tokens": 373,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_016",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 2.1236323749180883,
+      "prompt_tokens": 372,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_017",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.0320602501742542,
+      "prompt_tokens": 372,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_018",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.7128061249386519,
+      "prompt_tokens": 364,
+      "completion_tokens": 17,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_019",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.8414090420119464,
+      "prompt_tokens": 371,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_020",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.0196283750701696,
+      "prompt_tokens": 372,
+      "completion_tokens": 22,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_021",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.9500547919888049,
+      "prompt_tokens": 361,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_022",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.8137700411025435,
+      "prompt_tokens": 368,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_023",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 2.8160404169466347,
+      "prompt_tokens": 377,
+      "completion_tokens": 24,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_024",
+      "category_match": false,
+      "summary_score": 3,
+      "latency_seconds": 1.071166249923408,
+      "prompt_tokens": 392,
+      "completion_tokens": 29,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_025",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.7894455411005765,
+      "prompt_tokens": 365,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_026",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.9164947089739144,
+      "prompt_tokens": 360,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_027",
+      "category_match": false,
+      "summary_score": 2,
+      "latency_seconds": 1.008027542149648,
+      "prompt_tokens": 374,
+      "completion_tokens": 26,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_028",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 3.394154875073582,
+      "prompt_tokens": 369,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_029",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 2.8721033330075443,
+      "prompt_tokens": 389,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_030",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 1.2142527499236166,
+      "prompt_tokens": 369,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_031",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.001844499958679,
+      "prompt_tokens": 364,
+      "completion_tokens": 26,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_032",
+      "category_match": false,
+      "summary_score": 4,
+      "latency_seconds": 0.8457777081057429,
+      "prompt_tokens": 362,
+      "completion_tokens": 22,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_033",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.37998849991709,
+      "prompt_tokens": 370,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_034",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.3401920839678496,
+      "prompt_tokens": 366,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_035",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.9372480420861393,
+      "prompt_tokens": 363,
+      "completion_tokens": 21,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_036",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 0.8547094999812543,
+      "prompt_tokens": 364,
+      "completion_tokens": 17,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_037",
+      "category_match": false,
+      "summary_score": 3,
+      "latency_seconds": 0.7691604581195861,
+      "prompt_tokens": 372,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_038",
+      "category_match": true,
+      "summary_score": 2,
+      "latency_seconds": 0.8454769169911742,
+      "prompt_tokens": 362,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_039",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 2.2049525829497725,
+      "prompt_tokens": 364,
+      "completion_tokens": 19,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_040",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.8258785840589553,
+      "prompt_tokens": 369,
+      "completion_tokens": 23,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_041",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 0.9116564581636339,
+      "prompt_tokens": 371,
+      "completion_tokens": 20,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_042",
+      "category_match": false,
+      "summary_score": 4,
+      "latency_seconds": 1.3686097080353647,
+      "prompt_tokens": 363,
+      "completion_tokens": 18,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_043",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 1.8221269578207284,
+      "prompt_tokens": 360,
+      "completion_tokens": 19,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_044",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 1.1433970408979803,
+      "prompt_tokens": 368,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_045",
+      "category_match": false,
+      "summary_score": 2,
+      "latency_seconds": 1.2644094999413937,
+      "prompt_tokens": 373,
+      "completion_tokens": 23,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_046",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.7941407919861376,
+      "prompt_tokens": 367,
+      "completion_tokens": 21,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_047",
+      "category_match": true,
+      "summary_score": 4,
+      "latency_seconds": 0.8311050420161337,
+      "prompt_tokens": 370,
+      "completion_tokens": 20,
+      "passed": true
+    },
+    {
+      "test_case_id": "tc_048",
+      "category_match": true,
+      "summary_score": 1,
+      "latency_seconds": 1.1104475418105721,
+      "prompt_tokens": 368,
+      "completion_tokens": 19,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_049",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 1.3648464998696,
+      "prompt_tokens": 361,
+      "completion_tokens": 24,
+      "passed": false
+    },
+    {
+      "test_case_id": "tc_050",
+      "category_match": true,
+      "summary_score": 3,
+      "latency_seconds": 0.858100957935676,
+      "prompt_tokens": 379,
+      "completion_tokens": 24,
+      "passed": false
+    }
+  ]
+}
