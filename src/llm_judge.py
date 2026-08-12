@@ -1,4 +1,8 @@
 from .clients.llm_client import client
+from pydantic import BaseModel, Field
+
+class JudgeScore(BaseModel):
+    score: int = Field(ge=1, le=5, description="Relevance score from 1-5")
 
 async def llm_as_judge(generated_summary: str, actual_summary: str) -> int:
     """Takes in two summaries and returns a score of 1-5 based on how closely related they are."""
@@ -19,12 +23,20 @@ async def llm_as_judge(generated_summary: str, actual_summary: str) -> int:
     <actual-summary>
     """
 
-    response = await client.responses.create(
+    response = await client.beta.chat.completions.parse(
         model="gpt-4o-mini",
-        input=prompt
+        messages=[{"role": "user", "content": prompt}],
+        response_format=JudgeScore
     )
-    result = int(response.output_text)
-    if result < 0 or result > 5:
-        raise ValueError(f"ERROR: Result not in 1-5 range, result: {result}")
+
+    message = response.choices[0].message
+
+    if message.refusal:
+        raise ValueError(f"Model refused to respond: {message.refusal}")
+
+    if message.parsed is None:
+        raise ValueError("Failed to parse structured output from model response")
+
+    result = message.parsed.score
     
     return result
