@@ -74,7 +74,7 @@ async def scorer(
     print('=======================================================\n')
 
     print('=======================================================')
-    print(f'Scoring evaluations with llm judge.......')
+    print('Scoring evaluations with llm judge.......')
 
     tasks = []
     for generated_result in generated_results:

@@ -29,9 +29,11 @@ def save_run(eval_run: EvalRun, output_dir: str = "./src/runs") -> Path:
 async def run_eval(
     prompt_path: str = DEFAULT_PROMPT_PATH,
     dataset_path: str = DEFAULT_DATASET_PATH,
+    llm_client=None,
+    judge_client=None,
 ) -> EvalRun:
     config = load_prompt_config(prompt_path)
-    results = await scorer(prompt_path, dataset_path)
+    results = await scorer(prompt_path, dataset_path, llm_client=llm_client, judge_client=judge_client)
     total_cases = len(load_golden_dataset(dataset_path).cases)
     timestamp = datetime.now(timezone.utc).isoformat()
     return EvalRun(

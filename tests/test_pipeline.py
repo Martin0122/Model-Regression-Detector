@@ -4,7 +4,7 @@ import pytest
 import src.pipeline as pipeline_mod
 from src.config import CaseFlip, DriftResult
 from src.errors import IncompleteEvalRun, InsufficientRunHistory
-from src.llm_judge import JUDGE_MODEL
+from src.llm_judge import JUDGE_MODEL, JUDGE_PROMPT_VERSION
 
 
 @pytest.fixture
@@ -111,12 +111,41 @@ def test_summary_written_to_github_step_summary(in_repo, monkeypatch, make_compa
 # Run metadata
 # --------------------------------------------------------------------------------------
 
-def test_run_metadata_records_the_actual_judge_model(make_run, make_scored_result):
-    """Regression test: run metadata used to record the classifier model as the judge model."""
-    import inspect
-    source = inspect.getsource(pipeline_mod.run_eval)
-    assert "judge_model=JUDGE_MODEL" in source
-    assert JUDGE_MODEL
+async def test_run_metadata_records_the_real_judge_model_and_case_counts(
+    tmp_path, monkeypatch, fake_classifier_client, fake_judge_client, prompt_config
+):
+    """Regression test: metadata used to record the CLASSIFIER model as the judge model, and
+    carried no judge prompt version, so runs scored under different judges looked identical."""
+    import json
+    import src.scoring as scoring_mod
+
+    dataset = {
+        "dataset_version": "t", "created_at": "2026-01-01", "feature": "t", "status": "active",
+        "source_policy": "human", "expected_categories": ["billing"],
+        "expected_difficulties": ["easy"], "target_case_count": {"minimum": 1, "maximum": 10},
+        "cases": [{
+            "id": "t0", "input": "EMAIL_0",
+            "expected_output": {"category": "billing", "summary": "s"},
+            "expected_difficulty": "easy", "edge_case_tags": [], "notes": "n",
+        }],
+    }
+    path = tmp_path / "golden.json"
+    path.write_text(json.dumps(dataset))
+    monkeypatch.setattr(scoring_mod, "load_prompt_config", lambda p: prompt_config)
+    monkeypatch.setattr(pipeline_mod, "load_prompt_config", lambda p: prompt_config)
+
+    eval_run = await pipeline_mod.run_eval(
+        "prompt.yaml", str(path),
+        llm_client=fake_classifier_client(lambda email: ("billing", "generated")),
+        judge_client=fake_judge_client(lambda prompt: 5),
+    )
+
+    metadata = eval_run.run_metadata
+    assert metadata.judge_model == JUDGE_MODEL
+    assert metadata.judge_prompt_version == JUDGE_PROMPT_VERSION
+    assert metadata.model == prompt_config.model
+    assert metadata.total_cases == 1
+    assert metadata.completed_cases == 1
 
 
 def _fake_run_eval(make_run, make_scored_result):

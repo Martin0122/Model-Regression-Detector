@@ -12,19 +12,15 @@ def test_moving_average_values_are_correct(make_run, make_scored_result):
     assert [p[1] for p in points] == pytest.approx([2 / 3, 1 / 3, 2 / 3])
 
 
-def test_point_count_is_runs_minus_window_plus_one(make_run, make_scored_result):
-    runs = [make_run(f"r{i}", [make_scored_result("tc_1", True)]) for i in range(5)]
-    assert len(moving_averages(runs, window_size=3)) == 3
-
-
-def test_exactly_window_size_runs_yields_one_point(make_run, make_scored_result):
-    runs = [make_run(f"r{i}", [make_scored_result("tc_1", True)]) for i in range(7)]
-    assert len(moving_averages(runs, window_size=7)) == 1
-
-
-def test_fewer_than_window_size_runs_yields_no_points(make_run, make_scored_result):
-    runs = [make_run(f"r{i}", [make_scored_result("tc_1", True)]) for i in range(3)]
-    assert moving_averages(runs, window_size=7) == []
+@pytest.mark.parametrize("n_runs,window,expected_points", [
+    (3, 7, 0),   # fewer runs than the window - nothing to say yet
+    (7, 7, 1),   # exactly one full window
+    (8, 7, 2),   # first point that can be compared against a baseline
+    (5, 3, 3),
+])
+def test_point_count_follows_runs_minus_window_plus_one(make_run, make_scored_result, n_runs, window, expected_points):
+    runs = [make_run(f"r{i}", [make_scored_result("tc_1", True)]) for i in range(n_runs)]
+    assert len(moving_averages(runs, window_size=window)) == expected_points
 
 
 def test_detect_drift_returns_none_without_enough_history(tmp_path, make_run, make_scored_result):

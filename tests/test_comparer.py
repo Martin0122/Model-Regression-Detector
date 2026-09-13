@@ -8,7 +8,7 @@ import pytest
 
 from src.comparer import compare_runs, pass_rate, load_runs_safe, list_runs
 from src.config import ThresholdConfig
-from src.errors import InsufficientRunHistory
+from src.errors import IncompleteEvalRun, InsufficientRunHistory
 
 
 @pytest.fixture
@@ -168,13 +168,25 @@ def test_no_warning_when_judge_versions_match(make_run, make_scored_result, caps
     assert "different judge prompt versions" not in capsys.readouterr().out
 
 
-def test_archived_runs_are_not_picked_up_as_baselines():
-    """Runs scored under the old judge live in src/runs/archive/ and must stay out of history."""
-    active = [p.name for p in list_runs("./src/runs")]
-    assert all("archive" not in name for name in active)
+def test_list_runs_does_not_descend_into_subdirectories(tmp_path, make_run, make_scored_result):
+    """Runs scored under the old judge are parked in src/runs/archive/. They stay out of history
+    only because list_runs() globs one level - if that became recursive they would silently
+    return as baselines."""
+    active = make_run("run_2026-01-01T00-00-00", [make_scored_result("tc_1", True)])
+    (tmp_path / "run_2026-01-01T00-00-00.json").write_text(active.model_dump_json())
+
+    archive = tmp_path / "archive"
+    archive.mkdir()
+    stale = make_run("run_2025-01-01T00-00-00", [make_scored_result("tc_1", False)])
+    (archive / "run_2025-01-01T00-00-00.json").write_text(stale.model_dump_json())
+
+    found = [p.name for p in list_runs(str(tmp_path))]
+    assert found == ["run_2026-01-01T00-00-00.json"]
 
 
-def test_insufficient_history_is_not_a_valueerror():
-    """The pipeline catches InsufficientRunHistory specifically. If it were a ValueError
-    subclass, Pydantic's ValidationError would be caught by the same handler."""
+def test_control_flow_exceptions_are_not_valueerrors():
+    """The pipeline catches these specifically. If either were a ValueError subclass, Pydantic's
+    ValidationError (which IS-A ValueError) would be swallowed by the same handler - the bug
+    that made a corrupt run file report as 'first run' and exit 0."""
     assert not issubclass(InsufficientRunHistory, ValueError)
+    assert not issubclass(IncompleteEvalRun, ValueError)

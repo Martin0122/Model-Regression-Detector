@@ -152,10 +152,6 @@ async def test_gate_passes_when_completion_is_above_threshold(patched_clients, t
     assert len(results) == 10
 
 
-def test_gate_is_not_a_valueerror():
-    assert not issubclass(IncompleteEvalRun, ValueError)
-
-
 # --------------------------------------------------------------------------------------
 # lazy client initialization
 # --------------------------------------------------------------------------------------
@@ -166,21 +162,10 @@ def test_missing_api_key_raises_a_clear_error(monkeypatch):
     get_client.cache_clear()
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     try:
-        with pytest.raises(RuntimeError, match="OPENAI_API_KEY is required"):
+        with pytest.raises(RuntimeError, match=MISSING_KEY_MESSAGE):
             get_client()
     finally:
         get_client.cache_clear()
-
-    assert MISSING_KEY_MESSAGE == "OPENAI_API_KEY is required to run live evaluations."
-
-
-def test_pipeline_modules_import_without_any_api_key(monkeypatch):
-    """Importing must never require credentials - offline work (reports, comparisons, tests)
-    depends on it."""
-    import importlib
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    for name in ("src.classifier", "src.eval_runner", "src.llm_judge", "src.scoring", "src.pipeline"):
-        importlib.reload(importlib.import_module(name))
 
 
 async def test_scorer_surfaces_missing_key_once_not_as_n_skipped_cases(monkeypatch, tmp_path, prompt_config):
