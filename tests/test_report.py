@@ -13,7 +13,7 @@ def test_report_escapes_model_generated_content(tmp_path, make_run, make_scored_
         status="critical",
         previous=1.0,
         current=0.0,
-        regressions=[CaseFlip(test_case_id="tc_1", category="billing", previous_passed=True, current_passed=False)],
+        regressions=[CaseFlip(test_case_id="tc_1", category="billing")],
         category_deltas=[CategoryDelta(category="billing", previous_accuracy=1.0, current_accuracy=0.0, delta=-1.0)],
     )
 

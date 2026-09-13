@@ -86,7 +86,7 @@ def test_payload_includes_status_and_rates(make_comparison):
         status="critical",
         previous=0.94,
         current=0.89,
-        regressions=[CaseFlip(test_case_id="tc_7", category="billing", previous_passed=True, current_passed=False)],
+        regressions=[CaseFlip(test_case_id="tc_7", category="billing")],
     )
     text = build_slack_payload(comparison, "http://report/x.html")["text"]
     assert "CRITICAL" in text

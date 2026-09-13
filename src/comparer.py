@@ -107,15 +107,11 @@ def compare_runs(
             regressions.append(CaseFlip(
                 test_case_id=test_case_id,
                 category=category_map.get(test_case_id),
-                previous_passed=True,
-                current_passed=False,
             ))
         elif not baseline_result.passed and current_result.passed:
             improvements.append(CaseFlip(
                 test_case_id=test_case_id,
                 category=category_map.get(test_case_id),
-                previous_passed=False,
-                current_passed=True,
             ))
 
     # round to avoid float artifacts (e.g. 1.0 - 0.92 == 0.07999999999999996) landing
@@ -155,7 +151,13 @@ def compare_latest_two(runs_dir: str = "./src/runs", dataset_path: str = "./data
 
 
 if __name__ == "__main__":
-    result = compare_latest_two()
+    try:
+        result = compare_latest_two()
+    except InsufficientRunHistory as e:
+        # An ordinary, expected state (fresh clone, archived baselines) - report it plainly
+        # rather than dumping a traceback.
+        print(f"{e} Run `python -m src.pipeline` to record runs first.")
+        raise SystemExit(1)
 
     print("=======================================================")
     print(f"Comparing {result.baseline_run_id} -> {result.current_run_id}")

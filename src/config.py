@@ -104,8 +104,6 @@ class CompletionConfig(BaseModel):
 class CaseFlip(BaseModel):
     test_case_id: str
     category: str | None
-    previous_passed: bool
-    current_passed: bool
 
 class CategoryDelta(BaseModel):
     category: str

@@ -82,7 +82,7 @@ def test_summary_lists_regressed_cases(in_repo, make_comparison):
         status="critical",
         previous=0.94,
         current=0.89,
-        regressions=[CaseFlip(test_case_id="tc_7", category="billing", previous_passed=True, current_passed=False)],
+        regressions=[CaseFlip(test_case_id="tc_7", category="billing")],
     )
     pipeline_mod.write_pipeline_summary(comparison, in_repo / "report.html", None)
     summary = (in_repo / "reports" / "pipeline_summary.md").read_text()

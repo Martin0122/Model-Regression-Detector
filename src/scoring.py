@@ -101,8 +101,3 @@ async def scorer(
         )
 
     return results
-
-
-
-
-

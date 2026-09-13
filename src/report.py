@@ -1,9 +1,8 @@
 from html import escape
 from pathlib import Path
-from .config import ComparisonResult, EvalRun, ScoredResult, DriftResult
+from .config import ComparisonResult, DriftResult, EvalRun, ScoredResult, ThresholdConfig
 from .comparer import list_runs, load_runs_safe, build_category_map, compare_runs, pass_rate
 from .errors import InsufficientRunHistory
-from .config import ThresholdConfig
 from .drift import detect_drift
 from .notifier import send_slack_alert, send_drift_alert
 import os
@@ -178,4 +177,8 @@ def main(trend_size: int = 10) -> tuple[ComparisonResult, Path, DriftResult | No
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except InsufficientRunHistory as e:
+        print(f"{e} Run `python -m src.pipeline` to record runs first.")
+        raise SystemExit(1)
