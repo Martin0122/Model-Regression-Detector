@@ -7,6 +7,9 @@ to Slack. A separate rolling-average check watches for slow quality decay that n
 would trigger on its own. The goal is to catch a bad prompt change before it reaches users, the
 same way a test suite catches a bad code change.
 
+This file is the operational reference. For why the system is built this way — the problem it
+solves and the reasoning behind the main design decisions — see **[WRITEUP.md](WRITEUP.md)**.
+
 ## Architecture
 
 ```
@@ -212,6 +215,12 @@ history only grows when someone runs `python -m src.pipeline` locally (or in a s
 commits the result. Auto-committing from CI was left out deliberately: it's easy to get subtly
 wrong (race conditions between concurrent PRs, noisy bot commits) for a benefit that doesn't
 matter much at this scale.
+
+## Demo
+
+`docs/DEMO_SCRIPT.md` is a timed shot list for recording a 3-minute walkthrough: make a prompt
+change, watch the regression get caught, show the Slack alert and the diff report. It includes
+the pre-recording setup, since a real 50-case run takes longer than the recording budget.
 
 ## Run history persistence
 
