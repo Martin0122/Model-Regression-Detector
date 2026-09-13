@@ -1,0 +1,662 @@
+{
+  "dataset_version": "golden_dataset_v1",
+  "created_at": "2026-07-14",
+  "feature": "customer_support_email_classifier",
+  "status": "active",
+  "source_policy": "Cases and expected outputs must be written and reviewed by a human. Do not generate this ground truth with an LLM.",
+  "expected_categories": [
+    "billing",
+    "technical",
+    "account",
+    "general"
+  ],
+  "expected_difficulties": [
+    "easy",
+    "medium",
+    "hard",
+    "edge"
+  ],
+  "target_case_count": {
+    "minimum": 50,
+    "maximum": 100
+  },
+  "case_schema": {
+    "id": "Stable unique ID, for example billing_0001.",
+    "input": "Full customer email text, including subject when useful.",
+    "expected_output": {
+      "category": "One of billing, technical, account, general.",
+      "summary": "Human-written ideal one-sentence summary."
+    },
+    "expected_difficulty": "One of easy, medium, hard, edge.",
+    "edge_case_tags": "Optional list such as ambiguous, typo, mixed_language, sarcastic, extremely_short.",
+    "notes": "Human explanation of why this case matters."
+  },
+  "cases": [
+    {
+      "id": "tc_001",
+      "input": "I need help fixing my account, it's been hacked or something, I can't login with the password I first had.",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer cannot access their account and suspects the account may have been hacked."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Test's on keywords that may exaggerate the gravity of the situation."
+    },
+    {
+      "id": "tc_002",
+      "input": "You guys charged my card THREE times this month for the same plan. I want every extra charge refunded immediately.",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer reports being charged three times for the same subscription and demands refunds."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Clean, unambiguous billing case with clear emotional urgency but no category confusion."
+    },
+    {
+      "id": "tc_003",
+      "input": "Every time I hit export on a report over 10k rows the page just freezes. Chrome, latest version, Windows 11.",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer reports the page freezing when exporting reports over 10,000 rows in Chrome on Windows 11."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Clear technical bug report with reproducible details, no ambiguity."
+    },
+    {
+      "id": "tc_004",
+      "input": "hey do you have a mobile app? cant find it on the app store",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer is asking whether a mobile app exists and can't find it on the app store."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Simple informational question, no urgency or complexity."
+    },
+    {
+      "id": "tc_005",
+      "input": "I was billed for the premium plan but I can't access any premium features. Is this a permissions issue on my account or a billing mistake?",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer was billed for premium but can't access premium features and is unsure if it's a billing or account issue."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Genuinely ambiguous \u2014 could reasonably be filed as 'account' since the symptom is access/permissions, even though the root complaint is billing. Good test of tie-breaking logic."
+    },
+    {
+      "id": "tc_006",
+      "input": "wont open",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Extremely short message providing no detail beyond something failing to open."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "extremely_short"
+      ],
+      "notes": "Minimal information, tests whether model defaults sensibly or hallucinates specifics not in the input."
+    },
+    {
+      "id": "tc_007",
+      "input": "Oh great, ANOTHER update that broke the login page. Really appreciate the quality control here.",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer sarcastically complains that a recent update broke the login page."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [
+        "sarcastic"
+      ],
+      "notes": "Sarcasm test \u2014 model must extract the real complaint (login broken after update) despite the tone."
+    },
+    {
+      "id": "tc_008",
+      "input": "Necesito cambiar el email de mi cuenta pero no encuentro la opcion en configuracion, can you help?",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer wants to change their account email but can't find the setting, message is partly in Spanish."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "mixed_language"
+      ],
+      "notes": "Mixed language case \u2014 tests whether classifier handles non-English input without degrading. Summary should mention what language the original email was in."
+    },
+    {
+      "id": "tc_009",
+      "input": "recieved my invocie today and the total dosent match what i sighned up for last month, can u check",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer says their invoice total doesn't match what they signed up for and asks for it to be checked."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "typo"
+      ],
+      "notes": "Heavy typos throughout \u2014 tests robustness to misspelled words without misclassifying."
+    },
+    {
+      "id": "tc_010",
+      "input": "Do you support two-factor authentication? Also, is there a way to export my data if I ever decide to leave?",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer asks about two-factor authentication support and data export options."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Two-part question spanning what could be read as 'account' (2FA/data) or 'general' (pre-signup style inquiry) \u2014 ambiguous on category boundary."
+    },
+    {
+      "id": "tc_011",
+      "input": "FUCK YOU, I HATE YOUR FUCKING PRODUCT, DIEEEEE KILL YOURTSLRGE MFKFS KNFK JWS JK",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer sent a hate email in which they expressed their hatred for the product with profanity, likely a troll email."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [],
+      "notes": "Emails with vulgar language should be summarized without including the profanity, but still mentioning it does include vulgar language. Troll emails or just plain insults that don't reference any problems with accounts, billing, or technical matters, should be classified as general."
+    },
+    {
+      "id": "tc_012",
+      "input": "my subscription disappeared after i paid??",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer says their subscription disappeared after making a payment."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Ambiguous between billing and account because the issue could be payment-related or account access-related."
+    },
+    {
+      "id": "tc_013",
+      "input": "help",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer requested help but provided no additional details."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [
+        "extremely_short"
+      ],
+      "notes": "Short message that provides nothing but a word with 'help', evidently classified as general."
+    },
+    {
+      "id": "tc_014",
+      "input": "cant loggin",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer cannot log in to their account."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [
+        "extremely_short",
+        "typo"
+      ],
+      "notes": "Short message with typo; tests recovery of obvious intent."
+    },
+    {
+      "id": "tc_015",
+      "input": "Why is my bill higher? Did you guys upgrade me or something lol",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer questions why their bill increased and wonders if their plan was changed."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Billing complaint with informal language and uncertainty."
+    },
+    {
+      "id": "tc_016",
+      "input": "super convenient that the app crashes exactly when i need it \ud83d\ude43",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer sarcastically complains that the app crashes when they need it."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [
+        "sarcastic"
+      ],
+      "notes": "Sarcasm test; complaint is hidden behind tone."
+    },
+    {
+      "id": "tc_017",
+      "input": "Bonjour, mon compte ne marche pas, please help me fix this",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer says their account is not working and requests help in a mixed French and English message."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "mixed_language"
+      ],
+      "notes": "Mixed language account issue."
+    },
+    {
+      "id": "tc_018",
+      "input": "charged again. seriously?",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer complains about being charged again."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "extremely_short"
+      ],
+      "notes": "Very short billing complaint with emotional tone."
+    },
+    {
+      "id": "tc_019",
+      "input": "the button dont work and i already payed for this trash",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer reports a button not working after paying for the product."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Ambiguous between billing and technical; primary issue is functionality failure."
+    },
+    {
+      "id": "tc_020",
+      "input": "No puedo iniciar sesion desde ayer. My password works though.",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer cannot log in despite their password working, with a Spanish and English mixed message."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [
+        "mixed_language"
+      ],
+      "notes": "Mixed language and account authentication issue."
+    },
+    {
+      "id": "tc_021",
+      "input": "refund pls",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer requests a refund."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [
+        "extremely_short"
+      ],
+      "notes": "Extremely short request with clear billing intent."
+    },
+    {
+      "id": "tc_022",
+      "input": "i was charged but nothing works lol nice scam",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer says they were charged but cannot use the service and accuses the company of scamming them."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Ambiguous between billing and technical; payment complaint takes priority."
+    },
+    {
+      "id": "tc_023",
+      "input": "The new update is amazing! Now I can't open anything. 10/10 experience.",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer sarcastically complains that a new update caused everything to stop opening."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "sarcastic"
+      ],
+      "notes": "Positive words are sarcastic and should not confuse classification."
+    },
+    {
+      "id": "tc_024",
+      "input": "Je veux supprimer mon compte but where is the button, you guys need to improve your technical ability because how can't you code up a simple button to delete the account.",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer wants to delete their account but cannot find the option, and complains about technical team not making the button more visible."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous",
+        "mixed_language"
+      ],
+      "notes": "Mixed French and English account request, and ambigious because customer mentions technical ability along with an account problem."
+    },
+    {
+      "id": "tc_025",
+      "input": "invioce wrong amout",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer says their invoice amount is incorrect."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Heavy spelling mistakes but clear billing intent."
+    },
+    {
+      "id": "tc_026",
+      "input": "why",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer sent a one-word message asking why without context."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "extremely_short"
+      ],
+      "notes": "No actionable category information."
+    },
+    {
+      "id": "tc_027",
+      "input": "Can I use this in Japan? Also my account keeps logging me out.",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer asks about availability in Japan and reports repeated account logouts."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Two categories: general availability and account issue. Account issue is actionable."
+    },
+    {
+      "id": "tc_028",
+      "input": "me cobraron dos veces por favor arreglen esto",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer says they were charged twice and asks for it to be fixed."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [],
+      "notes": "Spanish billing request."
+    },
+    {
+      "id": "tc_029",
+      "input": "ur system is down again?? wow shocking",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer sarcastically reports that the system is down again."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "sarcastic"
+      ],
+      "notes": "Sarcastic outage complaint."
+    },
+    {
+      "id": "tc_030",
+      "input": "I forgot my password and the reset email never came",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer cannot reset their password because they did not receive the reset email."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Clear account recovery issue."
+    },
+    {
+      "id": "tc_031",
+      "input": "payment failed but money gone",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer says payment failed but money was still taken."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Could be billing or technical payment processing issue."
+    },
+    {
+      "id": "tc_032",
+      "input": "pls fix asap",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer requests an urgent fix but provides no details."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "extremely_short"
+      ],
+      "notes": "Minimal context."
+    },
+    {
+      "id": "tc_033",
+      "input": "No funciona la aplicacion, it keeps freezing every time",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer reports that the application freezes repeatedly in a mixed Spanish and English message."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "mixed_language"
+      ],
+      "notes": "Mixed language technical complaint."
+    },
+    {
+      "id": "tc_034",
+      "input": "nice job breaking my account after update",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer sarcastically complains that an update broke their account functionality."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Ambiguous between account and technical; update failure points to technical."
+    },
+    {
+      "id": "tc_035",
+      "input": "where is my receipt",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer asks where they can find their receipt."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Simple billing information request."
+    },
+    {
+      "id": "tc_036",
+      "input": "cant acsess profle",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer cannot access their profile."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "typo"
+      ],
+      "notes": "Typo-heavy account issue."
+    },
+    {
+      "id": "tc_037",
+      "input": "Your app is garbage but anyway how do I export my data?",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer insults the product but asks how to export their data."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [],
+      "notes": "Insults should not override the informational request."
+    },
+    {
+      "id": "tc_038",
+      "input": "account hacked??",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer suspects their account was hacked."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Short security-related account issue."
+    },
+    {
+      "id": "tc_039",
+      "input": "i didnt buy this charge",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer disputes an unfamiliar charge."
+      },
+      "expected_difficulty": "easy",
+      "edge_case_tags": [],
+      "notes": "Clear unauthorized billing complaint."
+    },
+    {
+      "id": "tc_040",
+      "input": "mi cuenta esta bloqueada, can someone unlock?",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer says their account is locked and requests an unlock."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "mixed_language"
+      ],
+      "notes": "Mixed language account recovery."
+    },
+    {
+      "id": "tc_041",
+      "input": "wow thanks for making me lose my work because the app crashed",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer complains that an app crash caused them to lose work."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "sarcastic"
+      ],
+      "notes": "Sarcastic emotional technical complaint."
+    },
+    {
+      "id": "tc_042",
+      "input": "subscription canceled itself??",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer says their subscription canceled unexpectedly."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Could be account settings or billing subscription management."
+    },
+    {
+      "id": "tc_043",
+      "input": "error",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer reports an error but provides no details."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "extremely_short"
+      ],
+      "notes": "Single-word technical signal."
+    },
+    {
+      "id": "tc_044",
+      "input": "recieved ur mail but link dosent work",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer says a link from an email does not work."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "typo"
+      ],
+      "notes": "Typo-heavy technical issue."
+    },
+    {
+      "id": "tc_045",
+      "input": "Can you add more users? Also why did my card get declined?",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer asks about adding users and reports a declined card payment."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous"
+      ],
+      "notes": "Multiple intents; billing issue is more actionable."
+    },
+    {
+      "id": "tc_046",
+      "input": "merci, gracias, thanks but still broken",
+      "expected_output": {
+        "category": "technical",
+        "summary": "Customer says the issue remains unresolved despite thanking support in multiple languages."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "mixed_language",
+        "sarcastic"
+      ],
+      "notes": "Mixed languages and misleading positive sentiment."
+    },
+    {
+      "id": "tc_047",
+      "input": "I guess paying you twice is a new feature now \ud83d\ude02",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer sarcastically complains about being charged twice."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "sarcastic"
+      ],
+      "notes": "Sarcasm and humor around duplicate billing."
+    },
+    {
+      "id": "tc_048",
+      "input": "my accnt wont load after i changed email",
+      "expected_output": {
+        "category": "account",
+        "summary": "Customer says their account will not load after changing their email."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [
+        "typo"
+      ],
+      "notes": "Account issue with typo and possible technical overlap."
+    },
+    {
+      "id": "tc_049",
+      "input": "hello???",
+      "expected_output": {
+        "category": "general",
+        "summary": "Customer sent a greeting or attention request without additional information."
+      },
+      "expected_difficulty": "hard",
+      "edge_case_tags": [
+        "ambiguous",
+        "extremely_short"
+      ],
+      "notes": "Extremely short ambiguous message."
+    },
+    {
+      "id": "tc_050",
+      "input": "This product is perfect if your goal is to waste money and time. Anyway my invoice is incorrect.",
+      "expected_output": {
+        "category": "billing",
+        "summary": "Customer sarcastically criticizes the product but reports an incorrect invoice."
+      },
+      "expected_difficulty": "medium",
+      "edge_case_tags": [],
+      "notes": "Strong negative sentiment should not distract from the billing issue."
+    }
+  ]
+}

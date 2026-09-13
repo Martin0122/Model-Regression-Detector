@@ -1,30 +1,51 @@
-from .clients.llm_client import client
+from .clients.llm_client import get_client
 from pydantic import BaseModel, Field
+import os
+
+# Single source of truth for the judge model: the same value is sent to the API and recorded
+# in run metadata, so a recorded run can never claim a judge model that wasn't actually used.
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gpt-4o-mini")
+
+# Bump this whenever the judge prompt below changes in a way that could shift scores. It is
+# recorded in run metadata so runs scored under different judge instructions are identifiable
+# rather than silently compared as if they measured the same thing.
+# v1: original prompt (self-contradictory: claimed 1=most relevant, 5=least relevant)
+# v2: corrected scale, 1=worst .. 5=best, with per-level descriptions
+JUDGE_PROMPT_VERSION = "v2"
 
 class JudgeScore(BaseModel):
-    score: int = Field(ge=1, le=5, description="Relevance score from 1-5")
+    score: int = Field(ge=1, le=5, description="Relevance score from 1 (worst) to 5 (best)")
 
-async def llm_as_judge(generated_summary: str, actual_summary: str) -> int:
-    """Takes in two summaries and returns a score of 1-5 based on how closely related they are."""
+async def llm_as_judge(generated_summary: str, actual_summary: str, judge_client=None) -> int:
+    """Takes in two summaries and returns a score of 1-5, where 1 is the worst match against
+    the reference summary and 5 is the best.
+
+    Pass judge_client to inject a double in tests; resolved lazily otherwise."""
+    judge_client = judge_client or get_client()
 
     prompt = f"""
-    You are a judge that will be given two email summaries that you will eventually use to rate with a score from 1-5 (inclusive), 1 being the most relevant
-    and 5 being the least relevant. The first summary is the generated summary of an LLM feature that generated a summary of an email, and the 
-    second summary is an ideal summary of the exact email. You will assign a score from 1-5 in which a 1 signifies the worst score, which means that
-    the first summary (generated summary) is not relevant whatsover to the second summary (ideal summary). A score of 5 means the two summaries are extremely
-    relevant to one another. Only return the score.
+    You are grading how well a generated email summary matches an ideal reference summary.
+
+    Score from 1 to 5 (inclusive), where a HIGHER score is BETTER:
+      1 = worst: the generated summary is not relevant to the reference summary at all
+      2 = poor: barely related, or misses the main point of the reference
+      3 = fair: partially captures the reference, but omits or distorts important details
+      4 = good: captures the main point accurately, with only minor differences in wording or detail
+      5 = best: fully equivalent in meaning to the reference summary
+
+    Return only the score.
 
     <generated-summary>
     {generated_summary}
-    <generated-summary>
+    </generated-summary>
 
-    <actual-summary>
+    <reference-summary>
     {actual_summary}
-    <actual-summary>
+    </reference-summary>
     """
 
-    response = await client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
+    response = await judge_client.beta.chat.completions.parse(
+        model=JUDGE_MODEL,
         messages=[{"role": "user", "content": prompt}],
         response_format=JudgeScore
     )

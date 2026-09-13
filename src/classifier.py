@@ -42,7 +42,8 @@ async def classify_email(
     llm_client=None,
 ) -> dict:
     if llm_client is None:
-        from .clients.llm_client import client as llm_client
+        from .clients.llm_client import get_client
+        llm_client = get_client()
 
     response = await llm_client.responses.parse(
         model=config.model,

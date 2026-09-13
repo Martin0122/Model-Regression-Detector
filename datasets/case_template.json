@@ -1,0 +1,11 @@
+{
+  "id": "billing_0001",
+  "input": "Subject: Short human-written subject\n\nHuman-written customer email body goes here.",
+  "expected_output": {
+    "category": "billing",
+    "summary": "One human-written sentence describing the customer request."
+  },
+  "expected_difficulty": "easy",
+  "edge_case_tags": [],
+  "notes": "Explain why this case belongs in the golden dataset."
+}
