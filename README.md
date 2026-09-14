@@ -216,6 +216,13 @@ commits the result. Auto-committing from CI was left out deliberately: it's easy
 wrong (race conditions between concurrent PRs, noisy bot commits) for a benefit that doesn't
 matter much at this scale.
 
+## Operator setup
+
+`docs/SETUP_CHECKLIST.md` walks through everything that has to be configured outside the
+codebase — building up run history, GitHub Actions secrets, branch protection (without which a
+failing job does not actually block a merge), Docker verification, and the optional Slack
+webhook. Start there when standing this up on a new repo or machine.
+
 ## Demo
 
 `docs/DEMO_SCRIPT.md` is a timed shot list for recording a 3-minute walkthrough: make a prompt
