@@ -25,6 +25,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
 
+      - name: Lint and format check
+        run: |
+          ruff check src/ tests/ datasets/
+          ruff format --check src/ tests/ datasets/
+
       - name: Validate golden dataset
         run: python datasets/validate_golden_dataset.py
 
@@ -64,6 +69,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           BLOCK_ON_CRITICAL_DRIFT: ${{ vars.BLOCK_ON_CRITICAL_DRIFT || 'false' }}
+          # Absolute quality floor. Set below the current pass rate deliberately: a floor above
+          # it fails every PR regardless of the change under review. Raise it as v3 stabilises -
+          # it is a ratchet, not a target.
+          MIN_PASS_RATE: ${{ vars.MIN_PASS_RATE || '0.75' }}
         run: python -m src.pipeline
 
       - name: Find previous eval comment

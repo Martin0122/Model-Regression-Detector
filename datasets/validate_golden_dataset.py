@@ -4,7 +4,6 @@ import re
 import sys
 from pathlib import Path
 
-
 # The single authoritative dataset - the same file the eval pipeline consumes, so validation
 # and production can never drift apart.
 DEFAULT_DATASET_PATH = "datasets/golden_dataset_v1.json"
@@ -99,7 +98,11 @@ def validate_dataset(path: Path, allow_draft: bool) -> int:
         if not is_non_empty_string(case_id):
             add_error(errors, f"{label} id must be a non-empty string.")
         elif not ID_PATTERN.match(case_id):
-            add_error(errors, f"{case_id} has an unstable ID format. Use lowercase letters, numbers, underscores, or hyphens.")
+            add_error(
+                errors,
+                f"{case_id} has an unstable ID format. Use lowercase letters, numbers, "
+                f"underscores, or hyphens.",
+            )
         elif case_id in seen_ids:
             add_error(errors, f"Duplicate case id: {case_id}")
         else:
@@ -116,7 +119,9 @@ def validate_dataset(path: Path, allow_draft: bool) -> int:
 
         missing_output_fields = REQUIRED_OUTPUT_FIELDS - output.keys()
         if missing_output_fields:
-            add_error(errors, f"{label} expected_output missing fields: {sorted(missing_output_fields)}")
+            add_error(
+                errors, f"{label} expected_output missing fields: {sorted(missing_output_fields)}"
+            )
 
         category = output.get("category")
         if category not in categories:
@@ -130,7 +135,10 @@ def validate_dataset(path: Path, allow_draft: bool) -> int:
 
         difficulty = case.get("expected_difficulty")
         if difficulty not in difficulties:
-            add_error(errors, f"{label} expected_difficulty must be one of {difficulties}; got {difficulty!r}.")
+            add_error(
+                errors,
+                f"{label} expected_difficulty must be one of {difficulties}; got {difficulty!r}.",
+            )
         if difficulty == "edge":
             has_edge_case = True
 
@@ -154,7 +162,10 @@ def validate_dataset(path: Path, allow_draft: bool) -> int:
             add_error(errors, message)
 
     if cases and not has_edge_case:
-        message = "Dataset has no deliberate edge cases. Add expected_difficulty='edge' or edge_case_tags."
+        message = (
+            "Dataset has no deliberate edge cases. "
+            "Add expected_difficulty='edge' or edge_case_tags."
+        )
         if allow_draft:
             add_warning(warnings, message)
         else:
