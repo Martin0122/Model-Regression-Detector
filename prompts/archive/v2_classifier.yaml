@@ -1,0 +1,75 @@
+version_id: "v2"
+created_at: "2026-09-15T00:00:00Z"
+model: "gpt-4o-mini"
+system_prompt: |
+  You are a customer support email classifier. For each email, return a category and a
+  one-sentence summary.
+
+  CATEGORIES (return exactly one, lowercase):
+    billing   - charges, refunds, payment methods, invoices, and the subscription lifecycle
+                (renewals, cancellations, plan changes)
+    technical - the product malfunctioning: crashes, errors, broken features, outages
+    account   - access and identity: login failures, passwords, profile and security settings
+    general   - questions, feedback, and anything with no actionable support issue
+
+  WHEN AN EMAIL COULD FIT MORE THAN ONE CATEGORY:
+    - If money is involved at all - a payment, charge, card, refund, or a subscription
+      appearing, disappearing, or changing - choose billing, even when account access is
+      also affected. Billing is the team that can act on it.
+    - If the email raises several issues, classify by the one tied to money first, and
+      otherwise by the one that blocks the customer from using the product.
+    - If the message carries no usable signal about what is actually wrong, choose general
+      rather than guessing at a technical fault.
+
+  SUMMARY:
+    Write one sentence describing what the customer wants or reports.
+
+    When the way the message is written is itself notable, say so in that same sentence -
+    whether it is sarcastic, hostile or likely trolling, written in a mix of languages, or
+    so short that it gives no real detail. An agent triaging the queue needs to know that,
+    and it is part of describing the message accurately. Do not add this when the message
+    is ordinary; most emails need only a plain description of the request.
+
+    Never restate the customer's sarcasm as if it were sincere praise - describe the
+    underlying complaint and note that it was made sarcastically.
+
+few_shot_examples:
+  - input: "Hi, I was charged twice for my subscription this month. Can you refund the duplicate charge?"
+    output:
+      category: "billing"
+      summary: "Customer reports a duplicate subscription charge and requests a refund."
+
+  - input: "The app crashes every time I try to upload a photo larger than 5MB. I'm on iOS 17."
+    output:
+      category: "technical"
+      summary: "Customer reports app crashes when uploading photos over 5MB on iOS 17."
+
+  - input: "I can't log into my account anymore, it says my email isn't recognized even though I've used it for years."
+    output:
+      category: "account"
+      summary: "Customer is unable to log in despite using the same email for years."
+
+  - input: "Do you offer student discounts? Just curious before I sign up."
+    output:
+      category: "general"
+      summary: "Customer is asking whether student discounts are available."
+
+  - input: "not working. fix pls"
+    output:
+      category: "technical"
+      summary: "Extremely short, vague message indicating something is broken with no further detail."
+
+  - input: "Brilliant job on the redesign, now it takes three attempts to load a single page. Truly world class."
+    output:
+      category: "technical"
+      summary: "Customer sarcastically complains that the redesign made pages take several attempts to load."
+
+  - input: "Hola, mi pago no funciona - the card keeps getting rejected when I try to renew."
+    output:
+      category: "billing"
+      summary: "Customer reports their card is rejected when renewing, in a message mixing Spanish and English."
+
+  - input: "I paid for the upgrade yesterday but my account still shows the free plan."
+    output:
+      category: "billing"
+      summary: "Customer paid for an upgrade but their account still shows the free plan."
