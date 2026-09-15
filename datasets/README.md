@@ -36,7 +36,7 @@ cannot drift apart. CI runs this on every PR touching `datasets/`, `src/`, `prom
 version is still being written.
 
 The pipeline additionally parses this file through the `GoldenDataset` Pydantic model in
-`src/config.py`, so a schema violation fails at load time rather than mid-eval.
+`src/models.py`, so a schema violation fails at load time rather than mid-eval.
 
 ## Growing the dataset
 

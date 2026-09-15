@@ -16,6 +16,10 @@ solves and the reasoning behind the main design decisions — see **[WRITEUP.md]
 prompts/*.yaml          -> versioned prompt configs (the "code" under test)
 datasets/golden_dataset_v1.json -> hand-labeled ground truth (50 cases); the ONE authoritative dataset
 datasets/validate_golden_dataset.py -> strict schema validator, runs in CI against that same file
+src/models.py           -> data schemas (prompt, dataset, run, comparison)
+src/settings.py         -> env-driven thresholds and gates
+src/loaders.py          -> loads and validates the prompt and the dataset
+src/formatting.py       -> shared phrasing for console, PR summary and Slack
 src/classifier.py       -> the LLM feature under test
 src/eval_runner.py      -> async batch runner, produces RawResult per case
 src/scoring.py          -> category exact-match + LLM-as-judge summary score -> ScoredResult
@@ -76,7 +80,7 @@ python -m src.pipeline
 ```
 
 This runs the classifier against `datasets/golden_dataset_v1.json` using
-`prompts/v1_classifier.yaml`, saves the result to `src/runs/`, and (once at least two runs
+`prompts/v4_classifier.yaml`, saves the result to `src/runs/`, and (once at least two runs
 exist) writes an HTML report to `reports/`, posts a Slack alert if a webhook is configured,
 and checks for drift.
 
@@ -119,7 +123,7 @@ python datasets/validate_golden_dataset.py
 ```
 
 CI runs that same validator against that same file, so validation and production can't drift
-apart. The dataset is also parsed through a Pydantic model (`GoldenDataset` in `src/config.py`),
+apart. The dataset is also parsed through a Pydantic model (`GoldenDataset` in `src/models.py`),
 so a malformed dataset fails loudly at load time instead of surfacing as a `KeyError` deep in
 the eval loop.
 
@@ -131,7 +135,7 @@ from real failures, not just be front-loaded once.
 
 ## Adjusting thresholds
 
-All thresholds are env vars with defaults in code (`src/config.py`), so nothing needs to be
+All thresholds are env vars with defaults in `src/settings.py`, so nothing needs to be
 rebuilt to change them — set them in `.env` locally, as repo/environment secrets in CI, or as
 `-e` flags to the Docker container.
 
@@ -143,6 +147,7 @@ rebuilt to change them — set them in `.env` locally, as repo/environment secre
 | `DRIFT_WARNING_THRESHOLD` | `0.03` | Rolling-average drop (vs. the earliest available window) that triggers a drift warning |
 | `DRIFT_CRITICAL_THRESHOLD` | `0.08` | Rolling-average drop that triggers critical drift |
 | `MIN_COMPLETION_RATE` | `0.95` | Fraction of the dataset that must complete, or the run aborts |
+| `MIN_PASS_RATE` | `0.0` (off) | Absolute quality floor — a run below this is critical even with no regression |
 | `BLOCK_ON_CRITICAL_DRIFT` | `false` | Whether critical drift fails the CI job (see below) |
 | `JUDGE_MODEL` | `gpt-4o-mini` | Model used by the LLM-as-judge; recorded in run metadata |
 
@@ -153,6 +158,28 @@ can fix it. Critical *drift* only alerts. Drift is a property of the trend, ofte
 upstream (a silently updated provider model, gradual data shift) rather than in any one PR, so
 blocking on it would stall every PR until the trend recovers, for something no individual author
 can fix. Set `BLOCK_ON_CRITICAL_DRIFT=true` if your team wants the hard stop instead.
+
+### Relative thresholds vs. the absolute floor
+
+The regression and drift thresholds are all *relative* — they ask "did this change make things
+worse". That leaves a real gap: a suite sitting at a poor pass rate reports `PASS` forever,
+because nothing got worse this run. `MIN_PASS_RATE` closes it by failing any run whose absolute
+pass rate is under the floor, regardless of the delta.
+
+It ships disabled (`0.0`). Turning it on above the current pass rate fails every run immediately,
+so set it once the suite is where you want it, and raise it as quality improves — a ratchet
+rather than an aspiration.
+
+### Testing a candidate prompt
+
+Don't promote a prompt before the eval has judged it. Point the pipeline at the candidate and let
+it be compared against the existing baseline:
+
+```bash
+python -m src.pipeline --prompt prompts/v4_candidate.yaml
+```
+
+If the comparison is favourable, promote it by updating `DEFAULT_PROMPT_PATH` in `src/scoring.py`.
 
 ### Incomplete runs
 
