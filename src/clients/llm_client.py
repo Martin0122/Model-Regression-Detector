@@ -1,9 +1,8 @@
 from openai import AsyncOpenAI
-from dotenv import load_dotenv
 from functools import lru_cache
 import os
 
-load_dotenv()
+# .env is loaded once in src/__init__.py, which runs before any module in this package.
 
 MISSING_KEY_MESSAGE = "OPENAI_API_KEY is required to run live evaluations."
 
