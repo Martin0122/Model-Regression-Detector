@@ -164,10 +164,12 @@ SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
 
 CI — add as a repository secret named `SLACK_WEBHOOK_URL` (same steps as section 2).
 
-Test it against a dedicated channel first:
+Test it against a dedicated channel first. This sends a sample alert through the same delivery
+path real alerts use, and needs no eval run and no API key:
 ```bash
-python -m src.report      # re-alerts on the existing comparison without a new eval run
+python -m src.notifier
 ```
+Exits 0 and prints `Delivered.` on success; exits 1 and tells you what's missing otherwise.
 
 > Treat the URL as a credential — anyone holding it can post to your channel. It's in
 > `.gitignore` via `.env`; never paste it into a commit or the workflow file directly.

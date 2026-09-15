@@ -1,7 +1,7 @@
 import json
 import os
 import urllib.request
-from .config import ComparisonResult, DriftResult
+from .config import CaseFlip, ComparisonResult, DriftResult
 
 STATUS_EMOJI = {"pass": ":white_check_mark:", "warning": ":warning:", "critical": ":rotating_light:"}
 
@@ -64,3 +64,33 @@ def send_drift_alert(drift: DriftResult, webhook_url: str | None = None) -> bool
     if drift.status == "pass":
         return False
     return _post_to_slack(build_drift_slack_payload(drift), webhook_url)
+
+
+if __name__ == "__main__":
+    # Smoke-test a webhook without running an eval: `python -m src.notifier`
+    # Uses the same delivery path as real alerts, so a success here means CI will deliver too.
+    import sys
+
+    sample = ComparisonResult(
+        baseline_run_id="run_example_baseline",
+        current_run_id="run_example_current",
+        previous_pass_rate=0.94,
+        current_pass_rate=0.89,
+        pass_rate_delta=-0.05,
+        category_deltas=[],
+        regressions=[CaseFlip(test_case_id="tc_007", category="technical"),
+                     CaseFlip(test_case_id="tc_019", category="billing")],
+        improvements=[],
+        status="warning",
+    )
+
+    print("Sending a test alert to SLACK_WEBHOOK_URL...")
+    delivered = _post_to_slack(
+        {"text": ":test_tube: *Webhook test* - Model Regression Detection System\n"
+                 + build_slack_payload(sample, "https://example.com/report.html")["text"]},
+        None,
+    )
+    if not delivered:
+        print("Not delivered. Set SLACK_WEBHOOK_URL in .env (see docs/SETUP_CHECKLIST.md).")
+        sys.exit(1)
+    print("Delivered. Check the channel.")
