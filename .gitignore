@@ -1,3 +1,11 @@
 .env
 .venv
 *__pycache__
+*.pyc
+.pytest_cache
+
+# Generated artifacts. Run history in src/runs/ IS committed - it is the regression baseline -
+# but reports are rebuilt from it on every run and are uploaded as CI artifacts instead.
+reports/*.html
+reports/*.json
+reports/pipeline_summary.md
