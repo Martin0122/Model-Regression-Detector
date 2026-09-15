@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .config import ComparisonResult, DriftResult, EvalRun, RunMetadata
-from .errors import IncompleteEvalRun, InsufficientRunHistory
+from .errors import IncompleteEvalRun, InsufficientRunHistory, MissingAPIKey
 from .llm_judge import JUDGE_MODEL, JUDGE_PROMPT_VERSION
 from .scoring import scorer, DEFAULT_PROMPT_PATH, DEFAULT_DATASET_PATH
 from .services.load_configs import load_prompt_config
@@ -130,4 +130,11 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(asyncio.run(main()))
+    try:
+        sys.exit(asyncio.run(main()))
+    except MissingAPIKey as e:
+        # The most common first-run failure, especially in the container. A traceback here
+        # buries the one line that tells you what to do.
+        print(f"ERROR: {e}")
+        print("Set it in .env, or pass it to the container with: docker run -e OPENAI_API_KEY=...")
+        sys.exit(1)

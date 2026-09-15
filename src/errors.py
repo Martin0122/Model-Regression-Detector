@@ -13,3 +13,12 @@ class InsufficientRunHistory(Exception):
 
 class IncompleteEvalRun(Exception):
     """Raised when too few test cases completed for a run's results to be trustworthy."""
+
+
+class MissingAPIKey(RuntimeError):
+    """Raised when a live evaluation is attempted without OPENAI_API_KEY.
+
+    Subclasses RuntimeError so callers that only care that something went wrong keep working,
+    while entry points can catch this specifically and print a one-line fix instead of a
+    traceback - this is the first thing anyone hits running the container.
+    """
