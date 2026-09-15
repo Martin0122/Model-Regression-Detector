@@ -1,6 +1,7 @@
-from openai import AsyncOpenAI
-from functools import lru_cache
 import os
+from functools import lru_cache
+
+from openai import AsyncOpenAI
 
 from ..errors import MissingAPIKey
 

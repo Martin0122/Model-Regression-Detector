@@ -1,8 +1,9 @@
 """Drift detection: rolling moving averages and the slow-decay threshold."""
+
 import pytest
 
-from src.config import DriftConfig
-from src.drift import detect_drift, moving_averages
+from src.drift import detect_drift, moving_averages, runs_for_current_prompt
+from src.settings import DriftConfig
 
 
 def test_moving_average_values_are_correct(make_run, make_scored_result):
@@ -12,15 +13,67 @@ def test_moving_average_values_are_correct(make_run, make_scored_result):
     assert [p[1] for p in points] == pytest.approx([2 / 3, 1 / 3, 2 / 3])
 
 
-@pytest.mark.parametrize("n_runs,window,expected_points", [
-    (3, 7, 0),   # fewer runs than the window - nothing to say yet
-    (7, 7, 1),   # exactly one full window
-    (8, 7, 2),   # first point that can be compared against a baseline
-    (5, 3, 3),
-])
-def test_point_count_follows_runs_minus_window_plus_one(make_run, make_scored_result, n_runs, window, expected_points):
+@pytest.mark.parametrize(
+    "n_runs,window,expected_points",
+    [
+        (3, 7, 0),  # fewer runs than the window - nothing to say yet
+        (7, 7, 1),  # exactly one full window
+        (8, 7, 2),  # first point that can be compared against a baseline
+        (5, 3, 3),
+    ],
+)
+def test_point_count_follows_runs_minus_window_plus_one(
+    make_run, make_scored_result, n_runs, window, expected_points
+):
     runs = [make_run(f"r{i}", [make_scored_result("tc_1", True)]) for i in range(n_runs)]
     assert len(moving_averages(runs, window_size=window)) == expected_points
+
+
+def test_drift_only_considers_runs_on_the_current_prompt_version(make_run, make_scored_result):
+    """A window spanning a prompt change measures the change, not decay - the v1->v2
+    promotion surfaced as a +6.9% 'drift' that was really an upgrade washing through."""
+    old = [
+        make_run(f"r{i}", [make_scored_result("tc_1", False)], prompt_version="v1")
+        for i in range(4)
+    ]
+    new = [
+        make_run(f"r{i + 4}", [make_scored_result("tc_1", True)], prompt_version="v2")
+        for i in range(3)
+    ]
+
+    kept = runs_for_current_prompt(old + new)
+    assert [r.run_metadata.prompt_version for r in kept] == ["v2", "v2", "v2"]
+
+
+def test_a_reused_version_string_across_a_gap_is_not_stitched_on(make_run, make_scored_result):
+    """Only the trailing block counts, so an older v2 run separated by a v1 run cannot rejoin
+    the current series."""
+    runs = [
+        make_run("r0", [make_scored_result("tc_1", True)], prompt_version="v2"),
+        make_run("r1", [make_scored_result("tc_1", True)], prompt_version="v1"),
+        make_run("r2", [make_scored_result("tc_1", True)], prompt_version="v2"),
+    ]
+    assert [r.run_metadata.run_id for r in runs_for_current_prompt(runs)] == ["r2"]
+
+
+def test_promoting_a_prompt_restarts_drift_history(tmp_path, make_run, make_scored_result):
+    """Eight runs on disk, but only two on the new prompt - drift must decline to report."""
+    for i in range(8):
+        run = make_run(
+            f"run_2026-01-{i + 1:02d}T00-00-00",
+            [make_scored_result("tc_1", True)],
+            prompt_version="v1",
+        )
+        (tmp_path / f"{run.run_metadata.run_id}.json").write_text(run.model_dump_json())
+    for i in range(8, 10):
+        run = make_run(
+            f"run_2026-01-{i + 1:02d}T00-00-00",
+            [make_scored_result("tc_1", True)],
+            prompt_version="v2",
+        )
+        (tmp_path / f"{run.run_metadata.run_id}.json").write_text(run.model_dump_json())
+
+    assert detect_drift(str(tmp_path), DriftConfig(window_size=7)) is None
 
 
 def test_detect_drift_returns_none_without_enough_history(tmp_path, make_run, make_scored_result):

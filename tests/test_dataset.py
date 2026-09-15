@@ -1,12 +1,13 @@
 """The golden dataset is ground truth - guard its integrity in CI."""
+
 import subprocess
 import sys
 from collections import Counter
 
 import pytest
 
+from src.loaders import load_golden_dataset
 from src.scoring import DEFAULT_DATASET_PATH
-from src.services.load_json import load_golden_dataset
 
 
 @pytest.fixture(scope="module")
@@ -52,7 +53,9 @@ def test_inputs_are_not_duplicated(dataset):
 
 
 def test_dataset_contains_deliberate_edge_cases(dataset):
-    tagged = [case for case in dataset.cases if case.edge_case_tags or case.expected_difficulty == "edge"]
+    tagged = [
+        case for case in dataset.cases if case.edge_case_tags or case.expected_difficulty == "edge"
+    ]
     assert len(tagged) >= 8
 
 

@@ -1,11 +1,13 @@
+import os
 from html import escape
 from pathlib import Path
-from .config import ComparisonResult, DriftResult, EvalRun, ScoredResult, ThresholdConfig
-from .comparer import list_runs, load_runs_safe, build_category_map, compare_runs, pass_rate
-from .errors import InsufficientRunHistory
+
+from .comparer import build_category_map, compare_runs, list_runs, load_runs_safe, pass_rate
 from .drift import detect_drift
-from .notifier import send_slack_alert, send_drift_alert
-import os
+from .errors import InsufficientRunHistory
+from .models import ComparisonResult, DriftResult, EvalRun, ScoredResult
+from .notifier import send_drift_alert, send_slack_alert
+from .settings import ThresholdConfig
 
 STATUS_COLORS = {"pass": "#1a7f37", "warning": "#9a6700", "critical": "#cf222e"}
 
@@ -18,7 +20,9 @@ def _cell(text: str | None) -> str:
     return escape(text) if text else "<em>n/a</em>"
 
 
-def _render_case_rows(flips, baseline_lookup: dict[str, ScoredResult], current_lookup: dict[str, ScoredResult]) -> str:
+def _render_case_rows(
+    flips, baseline_lookup: dict[str, ScoredResult], current_lookup: dict[str, ScoredResult]
+) -> str:
     rows = []
     for flip in flips:
         baseline_result = baseline_lookup.get(flip.test_case_id)
@@ -74,13 +78,16 @@ def generate_html_report(
     current_lookup = _case_lookup(current_run)
     status_color = STATUS_COLORS[comparison.status]
 
-    category_rows = "".join(f"""
+    category_rows = "".join(
+        f"""
         <tr>
           <td>{escape(delta.category)}</td>
           <td>{delta.previous_accuracy:.1%}</td>
           <td>{delta.current_accuracy:.1%}</td>
           <td>{delta.delta:+.1%}</td>
-        </tr>""" for delta in comparison.category_deltas)
+        </tr>"""
+        for delta in comparison.category_deltas
+    )
 
     html = f"""<!doctype html>
 <html lang="en">
@@ -141,7 +148,9 @@ def generate_html_report(
 </html>
 """
 
-    output_path = Path(output_dir) / f"report_{current_run.run_metadata.run_id.replace(':', '-')}.html"
+    output_path = (
+        Path(output_dir) / f"report_{current_run.run_metadata.run_id.replace(':', '-')}.html"
+    )
     output_path.write_text(html)
     return output_path
 
@@ -149,7 +158,9 @@ def generate_html_report(
 def main(trend_size: int = 10) -> tuple[ComparisonResult, Path, DriftResult | None]:
     runs = load_runs_safe(list_runs())
     if len(runs) < 2:
-        raise InsufficientRunHistory(f"Need at least 2 valid runs to build a report, found {len(runs)}.")
+        raise InsufficientRunHistory(
+            f"Need at least 2 valid runs to build a report, found {len(runs)}."
+        )
 
     baseline_run = runs[-2]
     current_run = runs[-1]
@@ -170,7 +181,9 @@ def main(trend_size: int = 10) -> tuple[ComparisonResult, Path, DriftResult | No
     if drift is None:
         print("Drift check skipped: not enough run history yet.")
     else:
-        print(f"Drift check: {drift.status.upper()} ({drift.drift_delta:+.1%} over {drift.window_size} runs)")
+        print(
+            f"Drift check: {drift.status.upper()} ({drift.drift_delta:+.1%} over {drift.window_size} runs)"
+        )
         send_drift_alert(drift)
 
     return comparison, report_path, drift
@@ -181,4 +194,4 @@ if __name__ == "__main__":
         main()
     except InsufficientRunHistory as e:
         print(f"{e} Run `python -m src.pipeline` to record runs first.")
-        raise SystemExit(1)
+        raise SystemExit(1) from None

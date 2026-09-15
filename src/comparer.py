@@ -1,11 +1,14 @@
-from .config import EvalRun, ScoredResult, ThresholdConfig, CaseFlip, CategoryDelta, ComparisonResult
-from .errors import InsufficientRunHistory
-from .services.load_json import load_golden_dataset
 from pathlib import Path
+
+from .errors import InsufficientRunHistory
+from .formatting import floor_line, pass_rate_line
+from .loaders import load_golden_dataset
+from .models import CaseFlip, CategoryDelta, ComparisonResult, EvalRun, ScoredResult
+from .settings import ThresholdConfig
 
 
 def list_runs(runs_dir: str = "./src/runs") -> list[Path]:
-    """Returns run files sorted oldest -> newest (filenames are ISO8601 timestamps, so string sort == chronological)."""
+    """Run files oldest -> newest. Filenames are ISO8601, so string sort is chronological."""
     return sorted(Path(runs_dir).glob("run_*.json"))
 
 
@@ -14,8 +17,8 @@ def load_run(path: Path) -> EvalRun:
 
 
 def load_runs_safe(paths: list[Path]) -> list[EvalRun]:
-    """Loads each run file, skipping (with a warning) any that are corrupt or malformed rather
-    than letting one bad historical file break comparison/trend/drift for every run after it."""
+    """Loads each run, skipping corrupt files with a warning rather than letting one bad
+    historical file break comparison, trend and drift for every run after it."""
     runs = []
     for path in paths:
         try:
@@ -36,7 +39,9 @@ def pass_rate(results: list[ScoredResult]) -> float:
     return sum(1 for r in results if r.passed) / len(results)
 
 
-def _category_accuracy(results: list[ScoredResult], category_map: dict[str, str]) -> dict[str, float]:
+def _category_accuracy(
+    results: list[ScoredResult], category_map: dict[str, str]
+) -> dict[str, float]:
     totals: dict[str, int] = {}
     matches: dict[str, int] = {}
     for result in results:
@@ -62,7 +67,8 @@ def warn_on_judge_mismatch(baseline: EvalRun, current: EvalRun) -> bool:
 
     print(
         f"WARNING: comparing runs scored under different judge prompt versions "
-        f"(baseline={baseline_version or 'unversioned'}, current={current_version or 'unversioned'}). "
+        f"(baseline={baseline_version or 'unversioned'}, "
+        f"current={current_version or 'unversioned'}). "
         f"The delta partly reflects the changed judge, not just the feature. "
         f"Regenerate the baseline with the current judge to get a clean comparison."
     )
@@ -104,15 +110,19 @@ def compare_runs(
         if baseline_result is None:
             continue
         if baseline_result.passed and not current_result.passed:
-            regressions.append(CaseFlip(
-                test_case_id=test_case_id,
-                category=category_map.get(test_case_id),
-            ))
+            regressions.append(
+                CaseFlip(
+                    test_case_id=test_case_id,
+                    category=category_map.get(test_case_id),
+                )
+            )
         elif not baseline_result.passed and current_result.passed:
-            improvements.append(CaseFlip(
-                test_case_id=test_case_id,
-                category=category_map.get(test_case_id),
-            ))
+            improvements.append(
+                CaseFlip(
+                    test_case_id=test_case_id,
+                    category=category_map.get(test_case_id),
+                )
+            )
 
     # round to avoid float artifacts (e.g. 1.0 - 0.92 == 0.07999999999999996) landing
     # on the wrong side of a threshold boundary
@@ -124,6 +134,15 @@ def compare_runs(
     else:
         status = "pass"
 
+    # Absolute floor, checked after the relative comparison. Without it a suite can hold a
+    # poor pass rate forever and still report PASS, because nothing got *worse* this run.
+    below_floor = (
+        thresholds.minimum_pass_rate > 0
+        and round(current_pass_rate, 9) < thresholds.minimum_pass_rate
+    )
+    if below_floor:
+        status = "critical"
+
     return ComparisonResult(
         baseline_run_id=baseline.run_metadata.run_id,
         current_run_id=current.run_metadata.run_id,
@@ -134,13 +153,19 @@ def compare_runs(
         regressions=regressions,
         improvements=improvements,
         status=status,
+        below_minimum_pass_rate=below_floor,
+        minimum_pass_rate=thresholds.minimum_pass_rate,
     )
 
 
-def compare_latest_two(runs_dir: str = "./src/runs", dataset_path: str = "./datasets/golden_dataset_v1.json") -> ComparisonResult:
+def compare_latest_two(
+    runs_dir: str = "./src/runs", dataset_path: str = "./datasets/golden_dataset_v1.json"
+) -> ComparisonResult:
     runs = load_runs_safe(list_runs(runs_dir))
     if len(runs) < 2:
-        raise InsufficientRunHistory(f"Need at least 2 valid runs to compare, found {len(runs)} in {runs_dir}.")
+        raise InsufficientRunHistory(
+            f"Need at least 2 valid runs to compare, found {len(runs)} in {runs_dir}."
+        )
 
     baseline = runs[-2]
     current = runs[-1]
@@ -157,15 +182,20 @@ if __name__ == "__main__":
         # An ordinary, expected state (fresh clone, archived baselines) - report it plainly
         # rather than dumping a traceback.
         print(f"{e} Run `python -m src.pipeline` to record runs first.")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
     print("=======================================================")
     print(f"Comparing {result.baseline_run_id} -> {result.current_run_id}")
-    print(f"Pass rate: {result.previous_pass_rate:.1%} -> {result.current_pass_rate:.1%} ({result.pass_rate_delta:+.1%})")
+    print(pass_rate_line(result))
     print(f"Status: {result.status.upper()}")
+    if floor := floor_line(result):
+        print(f"  {floor}")
     print("\nPer-category accuracy:")
     for delta in result.category_deltas:
-        print(f"  {delta.category}: {delta.previous_accuracy:.1%} -> {delta.current_accuracy:.1%} ({delta.delta:+.1%})")
+        print(
+            f"  {delta.category}: {delta.previous_accuracy:.1%} -> "
+            f"{delta.current_accuracy:.1%} ({delta.delta:+.1%})"
+        )
 
     if result.regressions:
         print(f"\nRegressions ({len(result.regressions)}):")
@@ -177,6 +207,8 @@ if __name__ == "__main__":
         for flip in result.improvements:
             print(f"  {flip.test_case_id} ({flip.category})")
 
-    output_path = Path("./reports") / f"comparison_{result.baseline_run_id.replace(':', '-')}_to_{result.current_run_id.replace(':', '-')}.json"
+    baseline_id = result.baseline_run_id.replace(":", "-")
+    current_id = result.current_run_id.replace(":", "-")
+    output_path = Path("./reports") / f"comparison_{baseline_id}_to_{current_id}.json"
     output_path.write_text(result.model_dump_json(indent=2))
     print(f"\nSaved comparison to {output_path}")

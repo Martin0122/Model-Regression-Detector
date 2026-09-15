@@ -1,15 +1,21 @@
 """Whether critical drift blocks a merge is opt-in - cover both settings."""
+
 import pytest
 
 import src.pipeline as pipeline_mod
-from src.config import DriftResult
+from src.models import DriftResult
 
 
 @pytest.fixture
 def critical_drift():
     return DriftResult(
-        window_size=7, baseline_run_id="r1", baseline_moving_average=1.0,
-        current_run_id="r8", current_moving_average=0.85, drift_delta=-0.15, status="critical",
+        window_size=7,
+        baseline_run_id="r1",
+        baseline_moving_average=1.0,
+        current_run_id="r8",
+        current_moving_average=0.85,
+        drift_delta=-0.15,
+        status="critical",
     )
 
 
@@ -27,6 +33,7 @@ def pipeline_with(tmp_path, monkeypatch, make_run, make_scored_result, make_comp
             "main",
             lambda: (make_comparison(comparison_status), tmp_path / "r.html", drift),
         )
+
     return _setup
 
 
@@ -51,8 +58,13 @@ async def test_critical_regression_blocks_regardless_of_drift_setting(pipeline_w
 async def test_passing_drift_does_not_block_when_gate_is_on(pipeline_with, monkeypatch):
     monkeypatch.setenv("BLOCK_ON_CRITICAL_DRIFT", "true")
     drift = DriftResult(
-        window_size=7, baseline_run_id="r1", baseline_moving_average=1.0,
-        current_run_id="r8", current_moving_average=1.0, drift_delta=0.0, status="pass",
+        window_size=7,
+        baseline_run_id="r1",
+        baseline_moving_average=1.0,
+        current_run_id="r8",
+        current_moving_average=1.0,
+        drift_delta=0.0,
+        status="pass",
     )
     pipeline_with(drift)
     assert await pipeline_mod.main() == 0

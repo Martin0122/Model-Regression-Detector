@@ -1,14 +1,15 @@
-
-from .config import PromptConfig, RawResult, GoldenCase
-from .clients.llm_client import get_client
-from .classifier import classify_email
-from .services.load_json import load_golden_dataset
 import asyncio
 import time
 
+from .classifier import classify_email
+from .clients.llm_client import get_client
+from .loaders import load_golden_dataset
+from .models import GoldenCase, PromptConfig, RawResult
 
-async def run_single_case(semaphore: asyncio.Semaphore, test_case: GoldenCase, config: PromptConfig, llm_client) -> RawResult | None:
-    # Use the semaphore asynchronously, will only allow X amount of coroutines concurrently
+
+async def run_single_case(
+    semaphore: asyncio.Semaphore, test_case: GoldenCase, config: PromptConfig, llm_client
+) -> RawResult | None:
     async with semaphore:
         start = time.perf_counter()
         try:
@@ -24,9 +25,13 @@ async def run_single_case(semaphore: asyncio.Semaphore, test_case: GoldenCase, c
             summary=result["summary"],
             latency=latency,
             prompt_tokens=result["input_tokens"],
-            completion_tokens=result["output_tokens"])
+            completion_tokens=result["output_tokens"],
+        )
 
-async def eval_runner(test_cases_path: str, config: PromptConfig, max_concurrency: int = 10, llm_client=None) -> list[RawResult]:
+
+async def eval_runner(
+    test_cases_path: str, config: PromptConfig, max_concurrency: int = 10, llm_client=None
+) -> list[RawResult]:
     """Returns a list of the raw results of the test cases ran against email classifier.
     A case whose API call fails (timeout, rate limit, etc.) is logged and skipped rather than
     aborting the whole batch - a transient error on one case shouldn't lose the other 49.
@@ -41,10 +46,11 @@ async def eval_runner(test_cases_path: str, config: PromptConfig, max_concurrenc
     dataset = load_golden_dataset(test_cases_path)
     semaphore = asyncio.Semaphore(max_concurrency)
 
-    print('=======================================================')
+    print("=======================================================")
     print(f"Running evaluation on {test_cases_path}...")
-    # Function 'run_single_case' isn't automatically executed since its just a coroutine now since we made the function async
-    test_cases = [run_single_case(semaphore, test_case, config, llm_client) for test_case in dataset.cases]
+    test_cases = [
+        run_single_case(semaphore, test_case, config, llm_client) for test_case in dataset.cases
+    ]
     raw_results = await asyncio.gather(*test_cases)
 
     results = [r for r in raw_results if r is not None]

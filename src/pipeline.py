@@ -3,19 +3,22 @@
 Usage: python -m src.pipeline
 Exit code is 1 when the comparison status is "critical" (used to block PR merges), 0 otherwise.
 """
+
+import argparse
 import asyncio
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
-from .config import ComparisonResult, DriftResult, EvalRun, RunMetadata
-from .errors import IncompleteEvalRun, InsufficientRunHistory, MissingAPIKey
-from .llm_judge import JUDGE_MODEL, JUDGE_PROMPT_VERSION
-from .scoring import scorer, DEFAULT_PROMPT_PATH, DEFAULT_DATASET_PATH
-from .services.load_configs import load_prompt_config
-from .services.load_json import load_golden_dataset
 from . import report as report_module
+from .classifier import CLASSIFIER_TEMPERATURE
+from .errors import IncompleteEvalRun, InsufficientRunHistory, MissingAPIKey
+from .formatting import flip_counts_line, floor_line, pass_rate_line
+from .llm_judge import JUDGE_MODEL, JUDGE_PROMPT_VERSION, JUDGE_TEMPERATURE
+from .loaders import load_golden_dataset, load_prompt_config
+from .models import ComparisonResult, DriftResult, EvalRun, RunMetadata
+from .scoring import DEFAULT_DATASET_PATH, DEFAULT_PROMPT_PATH, scorer
 
 
 def save_run(eval_run: EvalRun, output_dir: str = "./src/runs") -> Path:
@@ -33,9 +36,11 @@ async def run_eval(
     judge_client=None,
 ) -> EvalRun:
     config = load_prompt_config(prompt_path)
-    results = await scorer(prompt_path, dataset_path, llm_client=llm_client, judge_client=judge_client)
+    results = await scorer(
+        prompt_path, dataset_path, llm_client=llm_client, judge_client=judge_client
+    )
     total_cases = len(load_golden_dataset(dataset_path).cases)
-    timestamp = datetime.now(timezone.utc).isoformat()
+    timestamp = datetime.now(UTC).isoformat()
     return EvalRun(
         run_metadata=RunMetadata(
             run_id=f"run_{timestamp}",
@@ -43,6 +48,8 @@ async def run_eval(
             model=config.model,
             judge_model=JUDGE_MODEL,
             judge_prompt_version=JUDGE_PROMPT_VERSION,
+            judge_temperature=JUDGE_TEMPERATURE,
+            classifier_temperature=CLASSIFIER_TEMPERATURE,
             timestamp=timestamp,
             total_cases=total_cases,
             completed_cases=len(results),
@@ -60,21 +67,36 @@ def write_pipeline_summary(
     if aborted_reason is not None:
         lines = ["## Eval pipeline result: ABORTED", "", aborted_reason]
     elif comparison is None:
-        lines = ["## Eval pipeline result: FIRST RUN", "", "No prior run exists yet, so there's nothing to compare against."]
+        lines = [
+            "## Eval pipeline result: FIRST RUN",
+            "",
+            "No prior run exists yet, so there's nothing to compare against.",
+        ]
     else:
         lines = [
             f"## Eval pipeline result: {comparison.status.upper()}",
             "",
-            f"Pass rate: {comparison.previous_pass_rate:.1%} -> {comparison.current_pass_rate:.1%} ({comparison.pass_rate_delta:+.1%})",
-            f"Regressions: {len(comparison.regressions)} | Improvements: {len(comparison.improvements)}",
+            pass_rate_line(comparison),
+            flip_counts_line(comparison),
         ]
+        if floor := floor_line(comparison):
+            lines.append("")
+            lines.append(
+                f"**{floor}.** This fails the run regardless of whether anything "
+                f"regressed since the last one."
+            )
         if comparison.regressions:
             lines.append("")
             lines.append("### Regressed cases")
-            lines.extend(f"- `{flip.test_case_id}` ({flip.category})" for flip in comparison.regressions)
+            lines.extend(
+                f"- `{flip.test_case_id}` ({flip.category})" for flip in comparison.regressions
+            )
         if drift is not None and drift.status != "pass":
             lines.append("")
-            lines.append(f"**Slow drift detected:** {drift.status.upper()} ({drift.drift_delta:+.1%} over {drift.window_size} runs)")
+            lines.append(
+                f"**Slow drift detected:** {drift.status.upper()} "
+                f"({drift.drift_delta:+.1%} over {drift.window_size} runs)"
+            )
         if report_path is not None:
             lines.append("")
             lines.append(f"[Full HTML report]({report_path})")
@@ -90,9 +112,30 @@ def write_pipeline_summary(
             f.write(summary)
 
 
-async def main() -> int:
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="python -m src.pipeline",
+        description="Run the eval, score it, save the run, then compare/report/alert.",
+    )
+    parser.add_argument(
+        "--prompt",
+        default=DEFAULT_PROMPT_PATH,
+        help=f"Prompt config to evaluate (default: {DEFAULT_PROMPT_PATH}). Point this at a "
+        f"candidate prompt to test it against the existing baseline before promoting it.",
+    )
+    parser.add_argument(
+        "--dataset",
+        default=DEFAULT_DATASET_PATH,
+        help=f"Golden dataset to evaluate against (default: {DEFAULT_DATASET_PATH}).",
+    )
+    return parser.parse_args(argv)
+
+
+async def main(
+    prompt_path: str = DEFAULT_PROMPT_PATH, dataset_path: str = DEFAULT_DATASET_PATH
+) -> int:
     try:
-        eval_run = await run_eval()
+        eval_run = await run_eval(prompt_path, dataset_path)
     except IncompleteEvalRun as e:
         # Too much of the dataset failed to evaluate for the result to mean anything. The run is
         # deliberately NOT saved - persisting a partial run would skew future baselines and drift.
@@ -124,14 +167,18 @@ async def main() -> int:
         if os.getenv("BLOCK_ON_CRITICAL_DRIFT", "false").lower() == "true":
             print("Critical drift detected and BLOCK_ON_CRITICAL_DRIFT is set; failing the run.")
             return 1
-        print("Critical drift detected (reported, not blocking; set BLOCK_ON_CRITICAL_DRIFT=true to gate on it).")
+        print(
+            "Critical drift detected (reported, not blocking; "
+            "set BLOCK_ON_CRITICAL_DRIFT=true to gate on it)."
+        )
 
     return 0
 
 
 if __name__ == "__main__":
+    args = parse_args()
     try:
-        sys.exit(asyncio.run(main()))
+        sys.exit(asyncio.run(main(args.prompt, args.dataset)))
     except MissingAPIKey as e:
         # The most common first-run failure, especially in the container. A traceback here
         # buries the one line that tells you what to do.

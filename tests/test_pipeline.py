@@ -1,10 +1,11 @@
 """Pipeline exit codes, summary output, and run metadata."""
+
 import pytest
 
 import src.pipeline as pipeline_mod
-from src.config import CaseFlip, DriftResult
 from src.errors import IncompleteEvalRun, InsufficientRunHistory
 from src.llm_judge import JUDGE_MODEL, JUDGE_PROMPT_VERSION
+from src.models import CaseFlip, DriftResult
 
 
 @pytest.fixture
@@ -18,29 +19,51 @@ def in_repo(tmp_path, monkeypatch):
 # Exit codes
 # --------------------------------------------------------------------------------------
 
-async def test_exit_0_when_status_is_pass(in_repo, monkeypatch, make_run, make_scored_result, make_comparison):
+
+async def test_exit_0_when_status_is_pass(
+    in_repo, monkeypatch, make_run, make_scored_result, make_comparison
+):
     monkeypatch.setattr(pipeline_mod, "run_eval", _fake_run_eval(make_run, make_scored_result))
-    monkeypatch.setattr(pipeline_mod.report_module, "main", lambda: (make_comparison("pass"), in_repo / "r.html", None))
+    monkeypatch.setattr(
+        pipeline_mod.report_module,
+        "main",
+        lambda: (make_comparison("pass"), in_repo / "r.html", None),
+    )
     assert await pipeline_mod.main() == 0
 
 
-async def test_exit_0_when_status_is_warning(in_repo, monkeypatch, make_run, make_scored_result, make_comparison):
+async def test_exit_0_when_status_is_warning(
+    in_repo, monkeypatch, make_run, make_scored_result, make_comparison
+):
     """A warning should be visible but must not block the merge."""
     monkeypatch.setattr(pipeline_mod, "run_eval", _fake_run_eval(make_run, make_scored_result))
-    monkeypatch.setattr(pipeline_mod.report_module, "main", lambda: (make_comparison("warning"), in_repo / "r.html", None))
+    monkeypatch.setattr(
+        pipeline_mod.report_module,
+        "main",
+        lambda: (make_comparison("warning"), in_repo / "r.html", None),
+    )
     assert await pipeline_mod.main() == 0
 
 
-async def test_exit_1_when_status_is_critical(in_repo, monkeypatch, make_run, make_scored_result, make_comparison):
+async def test_exit_1_when_status_is_critical(
+    in_repo, monkeypatch, make_run, make_scored_result, make_comparison
+):
     monkeypatch.setattr(pipeline_mod, "run_eval", _fake_run_eval(make_run, make_scored_result))
-    monkeypatch.setattr(pipeline_mod.report_module, "main", lambda: (make_comparison("critical"), in_repo / "r.html", None))
+    monkeypatch.setattr(
+        pipeline_mod.report_module,
+        "main",
+        lambda: (make_comparison("critical"), in_repo / "r.html", None),
+    )
     assert await pipeline_mod.main() == 1
 
 
 async def test_exit_1_and_no_run_saved_when_completion_gate_trips(in_repo, monkeypatch):
     """A partial run must not be persisted - it would skew future baselines and drift."""
+
     async def boom(*args, **kwargs):
-        raise IncompleteEvalRun("Only 6/10 case(s) completed (60.0%), below the minimum completion rate of 95.0%.")
+        raise IncompleteEvalRun(
+            "Only 6/10 case(s) completed (60.0%), below the minimum completion rate of 95.0%."
+        )
 
     monkeypatch.setattr(pipeline_mod, "run_eval", boom)
     assert await pipeline_mod.main() == 1
@@ -48,7 +71,9 @@ async def test_exit_1_and_no_run_saved_when_completion_gate_trips(in_repo, monke
     assert "ABORTED" in (in_repo / "reports" / "pipeline_summary.md").read_text()
 
 
-async def test_exit_0_on_first_run_with_no_baseline(in_repo, monkeypatch, make_run, make_scored_result):
+async def test_exit_0_on_first_run_with_no_baseline(
+    in_repo, monkeypatch, make_run, make_scored_result
+):
     monkeypatch.setattr(pipeline_mod, "run_eval", _fake_run_eval(make_run, make_scored_result))
 
     def no_history():
@@ -59,7 +84,9 @@ async def test_exit_0_on_first_run_with_no_baseline(in_repo, monkeypatch, make_r
     assert "FIRST RUN" in (in_repo / "reports" / "pipeline_summary.md").read_text()
 
 
-async def test_unexpected_error_is_not_swallowed_as_first_run(in_repo, monkeypatch, make_run, make_scored_result):
+async def test_unexpected_error_is_not_swallowed_as_first_run(
+    in_repo, monkeypatch, make_run, make_scored_result
+):
     """Regression test: Pydantic's ValidationError IS-A ValueError. A broad `except ValueError`
     used to swallow a corrupt-run-file crash, report it as 'first run', and return exit 0 -
     silently skipping the regression gate."""
@@ -77,6 +104,7 @@ async def test_unexpected_error_is_not_swallowed_as_first_run(in_repo, monkeypat
 # Summary output
 # --------------------------------------------------------------------------------------
 
+
 def test_summary_lists_regressed_cases(in_repo, make_comparison):
     comparison = make_comparison(
         status="critical",
@@ -93,8 +121,13 @@ def test_summary_lists_regressed_cases(in_repo, make_comparison):
 
 def test_summary_includes_drift_warning(in_repo, make_comparison):
     drift = DriftResult(
-        window_size=7, baseline_run_id="r1", baseline_moving_average=1.0,
-        current_run_id="r8", current_moving_average=0.9, drift_delta=-0.1, status="critical",
+        window_size=7,
+        baseline_run_id="r1",
+        baseline_moving_average=1.0,
+        current_run_id="r8",
+        current_moving_average=0.9,
+        drift_delta=-0.1,
+        status="critical",
     )
     pipeline_mod.write_pipeline_summary(make_comparison("pass"), in_repo / "report.html", drift)
     assert "Slow drift detected" in (in_repo / "reports" / "pipeline_summary.md").read_text()
@@ -111,23 +144,35 @@ def test_summary_written_to_github_step_summary(in_repo, monkeypatch, make_compa
 # Run metadata
 # --------------------------------------------------------------------------------------
 
+
 async def test_run_metadata_records_the_real_judge_model_and_case_counts(
     tmp_path, monkeypatch, fake_classifier_client, fake_judge_client, prompt_config
 ):
     """Regression test: metadata used to record the CLASSIFIER model as the judge model, and
     carried no judge prompt version, so runs scored under different judges looked identical."""
     import json
+
     import src.scoring as scoring_mod
 
     dataset = {
-        "dataset_version": "t", "created_at": "2026-01-01", "feature": "t", "status": "active",
-        "source_policy": "human", "expected_categories": ["billing"],
-        "expected_difficulties": ["easy"], "target_case_count": {"minimum": 1, "maximum": 10},
-        "cases": [{
-            "id": "t0", "input": "EMAIL_0",
-            "expected_output": {"category": "billing", "summary": "s"},
-            "expected_difficulty": "easy", "edge_case_tags": [], "notes": "n",
-        }],
+        "dataset_version": "t",
+        "created_at": "2026-01-01",
+        "feature": "t",
+        "status": "active",
+        "source_policy": "human",
+        "expected_categories": ["billing"],
+        "expected_difficulties": ["easy"],
+        "target_case_count": {"minimum": 1, "maximum": 10},
+        "cases": [
+            {
+                "id": "t0",
+                "input": "EMAIL_0",
+                "expected_output": {"category": "billing", "summary": "s"},
+                "expected_difficulty": "easy",
+                "edge_case_tags": [],
+                "notes": "n",
+            }
+        ],
     }
     path = tmp_path / "golden.json"
     path.write_text(json.dumps(dataset))
@@ -135,7 +180,8 @@ async def test_run_metadata_records_the_real_judge_model_and_case_counts(
     monkeypatch.setattr(pipeline_mod, "load_prompt_config", lambda p: prompt_config)
 
     eval_run = await pipeline_mod.run_eval(
-        "prompt.yaml", str(path),
+        "prompt.yaml",
+        str(path),
         llm_client=fake_classifier_client(lambda email: ("billing", "generated")),
         judge_client=fake_judge_client(lambda prompt: 5),
     )
@@ -151,4 +197,5 @@ async def test_run_metadata_records_the_real_judge_model_and_case_counts(
 def _fake_run_eval(make_run, make_scored_result):
     async def _run(*args, **kwargs):
         return make_run("run_2026-01-01T00-00-00", [make_scored_result("tc_1", True)])
+
     return _run

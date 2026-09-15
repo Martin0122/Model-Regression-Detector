@@ -4,11 +4,12 @@ These preserve the edge cases found during the deep-testing pass, including the 
 boundary bug where an exact 8% drop computed as 0.07999999999999996 and was silently downgraded
 from critical to warning.
 """
+
 import pytest
 
-from src.comparer import compare_runs, pass_rate, load_runs_safe, list_runs
-from src.config import ThresholdConfig
+from src.comparer import compare_runs, list_runs, load_runs_safe, pass_rate
 from src.errors import IncompleteEvalRun, InsufficientRunHistory
+from src.settings import ThresholdConfig
 
 
 @pytest.fixture
@@ -27,6 +28,7 @@ def build_runs(make_run, make_scored_result, n_total, n_failing_in_current):
 # --------------------------------------------------------------------------------------
 # Threshold boundaries
 # --------------------------------------------------------------------------------------
+
 
 def test_exact_3_percent_drop_is_warning(make_run, make_scored_result, cat_map_100):
     baseline, current = build_runs(make_run, make_scored_result, 100, 3)
@@ -51,7 +53,12 @@ def test_small_drop_stays_pass(make_run, make_scored_result, cat_map_100):
 
 def test_thresholds_are_configurable(make_run, make_scored_result, cat_map_100):
     baseline, current = build_runs(make_run, make_scored_result, 100, 2)
-    strict = compare_runs(baseline, current, cat_map_100, ThresholdConfig(warning_threshold=0.01, critical_threshold=0.02))
+    strict = compare_runs(
+        baseline,
+        current,
+        cat_map_100,
+        ThresholdConfig(warning_threshold=0.01, critical_threshold=0.02),
+    )
     assert strict.status == "critical"
 
 
@@ -59,10 +66,13 @@ def test_thresholds_are_configurable(make_run, make_scored_result, cat_map_100):
 # Flip detection
 # --------------------------------------------------------------------------------------
 
+
 def test_pure_improvement_is_pass_with_no_regressions(make_run, make_scored_result):
     baseline = make_run("r1", [make_scored_result(f"tc_{i}", False) for i in range(10)])
     current = make_run("r2", [make_scored_result(f"tc_{i}", True) for i in range(10)])
-    result = compare_runs(baseline, current, {f"tc_{i}": "billing" for i in range(10)}, ThresholdConfig())
+    result = compare_runs(
+        baseline, current, {f"tc_{i}": "billing" for i in range(10)}, ThresholdConfig()
+    )
     assert result.status == "pass"
     assert len(result.improvements) == 10
     assert result.regressions == []
@@ -71,14 +81,18 @@ def test_pure_improvement_is_pass_with_no_regressions(make_run, make_scored_resu
 def test_case_added_in_current_is_not_counted_as_regression(make_run, make_scored_result):
     baseline = make_run("r1", [make_scored_result("tc_1", True)])
     current = make_run("r2", [make_scored_result("tc_1", True), make_scored_result("tc_2", False)])
-    result = compare_runs(baseline, current, {"tc_1": "billing", "tc_2": "technical"}, ThresholdConfig())
+    result = compare_runs(
+        baseline, current, {"tc_1": "billing", "tc_2": "technical"}, ThresholdConfig()
+    )
     assert result.regressions == []
 
 
 def test_case_removed_from_current_does_not_crash(make_run, make_scored_result):
     baseline = make_run("r1", [make_scored_result("tc_1", True), make_scored_result("tc_2", True)])
     current = make_run("r2", [make_scored_result("tc_1", False)])
-    result = compare_runs(baseline, current, {"tc_1": "billing", "tc_2": "technical"}, ThresholdConfig())
+    result = compare_runs(
+        baseline, current, {"tc_1": "billing", "tc_2": "technical"}, ThresholdConfig()
+    )
     assert [f.test_case_id for f in result.regressions] == ["tc_1"]
 
 
@@ -93,6 +107,7 @@ def test_case_id_missing_from_category_map_is_tolerated(make_run, make_scored_re
 # Pass rate / per-category accuracy
 # --------------------------------------------------------------------------------------
 
+
 def test_pass_rate_of_empty_results_is_zero_not_zero_division():
     assert pass_rate([]) == 0.0
 
@@ -105,15 +120,23 @@ def test_empty_runs_compare_without_crashing(make_run):
 
 
 def test_per_category_deltas_are_computed_per_category(make_run, make_scored_result):
-    baseline = make_run("r1", [
-        make_scored_result("b1", True, category_match=True),
-        make_scored_result("t1", True, category_match=True),
-    ])
-    current = make_run("r2", [
-        make_scored_result("b1", False, category_match=False),
-        make_scored_result("t1", True, category_match=True),
-    ])
-    result = compare_runs(baseline, current, {"b1": "billing", "t1": "technical"}, ThresholdConfig())
+    baseline = make_run(
+        "r1",
+        [
+            make_scored_result("b1", True, category_match=True),
+            make_scored_result("t1", True, category_match=True),
+        ],
+    )
+    current = make_run(
+        "r2",
+        [
+            make_scored_result("b1", False, category_match=False),
+            make_scored_result("t1", True, category_match=True),
+        ],
+    )
+    result = compare_runs(
+        baseline, current, {"b1": "billing", "t1": "technical"}, ThresholdConfig()
+    )
     deltas = {d.category: d for d in result.category_deltas}
     assert deltas["billing"].delta == pytest.approx(-1.0)
     assert deltas["technical"].delta == pytest.approx(0.0)
@@ -123,7 +146,10 @@ def test_per_category_deltas_are_computed_per_category(make_run, make_scored_res
 # Corrupt-file resilience
 # --------------------------------------------------------------------------------------
 
-def test_load_runs_safe_skips_corrupt_file_and_keeps_valid_ones(tmp_path, make_run, make_scored_result):
+
+def test_load_runs_safe_skips_corrupt_file_and_keeps_valid_ones(
+    tmp_path, make_run, make_scored_result
+):
     """Regression test: a single truncated run file used to raise a Pydantic ValidationError
     (which IS-A ValueError) and get misreported by the pipeline as 'first run', returning
     exit 0 and skipping the regression gate entirely."""
@@ -135,12 +161,16 @@ def test_load_runs_safe_skips_corrupt_file_and_keeps_valid_ones(tmp_path, make_r
 
     runs = load_runs_safe(list_runs(str(tmp_path)))
     assert len(runs) == 2
-    assert [r.run_metadata.run_id for r in runs] == ["run_2026-01-01T00-00-00", "run_2026-01-03T00-00-00"]
+    assert [r.run_metadata.run_id for r in runs] == [
+        "run_2026-01-01T00-00-00",
+        "run_2026-01-03T00-00-00",
+    ]
 
 
 # --------------------------------------------------------------------------------------
 # Judge prompt version guard
 # --------------------------------------------------------------------------------------
+
 
 def test_warns_when_runs_used_different_judge_prompt_versions(make_run, make_scored_result, capsys):
     """A changed judge prompt moves scores on its own, so a delta across that boundary mixes
@@ -182,6 +212,61 @@ def test_list_runs_does_not_descend_into_subdirectories(tmp_path, make_run, make
 
     found = [p.name for p in list_runs(str(tmp_path))]
     assert found == ["run_2026-01-01T00-00-00.json"]
+
+
+# --------------------------------------------------------------------------------------
+# Absolute quality floor
+# --------------------------------------------------------------------------------------
+
+
+def test_floor_is_off_by_default_so_a_flat_low_quality_run_passes(make_run, make_scored_result):
+    """The exact gap the floor exists to close: 33/50 passing, nothing regressed, so the
+    relative check reports PASS. Off by default, this is still the behaviour."""
+    results = [make_scored_result(f"tc_{i}", i < 33) for i in range(50)]
+    baseline = make_run("r1", results)
+    current = make_run("r2", list(results))
+    cat_map = {f"tc_{i}": "billing" for i in range(50)}
+
+    result = compare_runs(baseline, current, cat_map, ThresholdConfig())
+    assert result.current_pass_rate == pytest.approx(0.66)
+    assert result.status == "pass"
+    assert result.below_minimum_pass_rate is False
+
+
+def test_floor_fails_a_low_quality_run_even_with_no_regression(make_run, make_scored_result):
+    results = [make_scored_result(f"tc_{i}", i < 33) for i in range(50)]
+    baseline = make_run("r1", results)
+    current = make_run("r2", list(results))
+    cat_map = {f"tc_{i}": "billing" for i in range(50)}
+
+    result = compare_runs(baseline, current, cat_map, ThresholdConfig(minimum_pass_rate=0.80))
+    assert result.status == "critical"
+    assert result.below_minimum_pass_rate is True
+    assert result.pass_rate_delta == pytest.approx(0.0)  # critical despite zero regression
+
+
+def test_floor_allows_a_run_at_or_above_the_minimum(make_run, make_scored_result):
+    results = [make_scored_result(f"tc_{i}", i < 40) for i in range(50)]  # exactly 80%
+    baseline = make_run("r1", results)
+    current = make_run("r2", list(results))
+    cat_map = {f"tc_{i}": "billing" for i in range(50)}
+
+    result = compare_runs(baseline, current, cat_map, ThresholdConfig(minimum_pass_rate=0.80))
+    assert result.status == "pass"
+    assert result.below_minimum_pass_rate is False
+
+
+def test_regression_still_reported_when_floor_also_breached(make_run, make_scored_result):
+    """A run can be both below the floor and regressing - the regressed cases must still
+    be listed, not swallowed by the floor verdict."""
+    baseline = make_run("r1", [make_scored_result(f"tc_{i}", True) for i in range(50)])
+    current = make_run("r2", [make_scored_result(f"tc_{i}", i < 30) for i in range(50)])
+    cat_map = {f"tc_{i}": "billing" for i in range(50)}
+
+    result = compare_runs(baseline, current, cat_map, ThresholdConfig(minimum_pass_rate=0.80))
+    assert result.status == "critical"
+    assert result.below_minimum_pass_rate is True
+    assert len(result.regressions) == 20
 
 
 def test_control_flow_exceptions_are_not_valueerrors():

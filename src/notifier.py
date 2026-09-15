@@ -1,9 +1,15 @@
 import json
 import os
 import urllib.request
-from .config import CaseFlip, ComparisonResult, DriftResult
 
-STATUS_EMOJI = {"pass": ":white_check_mark:", "warning": ":warning:", "critical": ":rotating_light:"}
+from .formatting import drift_line, floor_line, pass_rate_line, regressed_case_ids
+from .models import CaseFlip, ComparisonResult, DriftResult
+
+STATUS_EMOJI = {
+    "pass": ":white_check_mark:",
+    "warning": ":warning:",
+    "critical": ":rotating_light:",
+}
 
 
 def _post_to_slack(payload: dict, webhook_url: str | None) -> bool:
@@ -18,7 +24,9 @@ def _post_to_slack(payload: dict, webhook_url: str | None) -> bool:
 
     try:
         data = json.dumps(payload).encode("utf-8")
-        request = urllib.request.Request(webhook_url, data=data, headers={"Content-Type": "application/json"})
+        request = urllib.request.Request(
+            webhook_url, data=data, headers={"Content-Type": "application/json"}
+        )
         with urllib.request.urlopen(request, timeout=10) as response:
             if response.status >= 300:
                 raise RuntimeError(f"Slack webhook returned status {response.status}")
@@ -34,10 +42,15 @@ def build_slack_payload(comparison: ComparisonResult, report_url: str | None = N
     emoji = STATUS_EMOJI[comparison.status]
     lines = [
         f"{emoji} *Model regression check: {comparison.status.upper()}*",
-        f"Pass rate: {comparison.previous_pass_rate:.1%} -> {comparison.current_pass_rate:.1%} ({comparison.pass_rate_delta:+.1%})",
+        pass_rate_line(comparison),
     ]
+    if floor := floor_line(comparison):
+        lines.append(floor)
     if comparison.regressions:
-        lines.append(f"{len(comparison.regressions)} regression(s): {', '.join(f.test_case_id for f in comparison.regressions[:10])}")
+        lines.append(
+            f"{len(comparison.regressions)} regression(s): "
+            f"{regressed_case_ids(comparison, limit=10)}"
+        )
     if comparison.improvements:
         lines.append(f"{len(comparison.improvements)} improvement(s)")
     if report_url:
@@ -46,17 +59,23 @@ def build_slack_payload(comparison: ComparisonResult, report_url: str | None = N
     return {"text": "\n".join(lines)}
 
 
-def send_slack_alert(comparison: ComparisonResult, report_url: str | None = None, webhook_url: str | None = None) -> bool:
+def send_slack_alert(
+    comparison: ComparisonResult, report_url: str | None = None, webhook_url: str | None = None
+) -> bool:
     return _post_to_slack(build_slack_payload(comparison, report_url), webhook_url)
 
 
 def build_drift_slack_payload(drift: DriftResult) -> dict:
     emoji = STATUS_EMOJI[drift.status]
-    return {"text": "\n".join([
-        f"{emoji} *Slow drift check: {drift.status.upper()}*",
-        f"{drift.window_size}-run moving average: {drift.baseline_moving_average:.1%} ({drift.baseline_run_id}) -> {drift.current_moving_average:.1%} ({drift.current_run_id})",
-        f"Drift: {drift.drift_delta:+.1%}",
-    ])}
+    return {
+        "text": "\n".join(
+            [
+                f"{emoji} *Slow drift check: {drift.status.upper()}*",
+                drift_line(drift),
+                f"Drift: {drift.drift_delta:+.1%}",
+            ]
+        )
+    }
 
 
 def send_drift_alert(drift: DriftResult, webhook_url: str | None = None) -> bool:
@@ -78,16 +97,20 @@ if __name__ == "__main__":
         current_pass_rate=0.89,
         pass_rate_delta=-0.05,
         category_deltas=[],
-        regressions=[CaseFlip(test_case_id="tc_007", category="technical"),
-                     CaseFlip(test_case_id="tc_019", category="billing")],
+        regressions=[
+            CaseFlip(test_case_id="tc_007", category="technical"),
+            CaseFlip(test_case_id="tc_019", category="billing"),
+        ],
         improvements=[],
         status="warning",
     )
 
     print("Sending a test alert to SLACK_WEBHOOK_URL...")
     delivered = _post_to_slack(
-        {"text": ":test_tube: *Webhook test* - Model Regression Detection System\n"
-                 + build_slack_payload(sample, "https://example.com/report.html")["text"]},
+        {
+            "text": ":test_tube: *Webhook test* - Model Regression Detection System\n"
+            + build_slack_payload(sample, "https://example.com/report.html")["text"]
+        },
         None,
     )
     if not delivered:

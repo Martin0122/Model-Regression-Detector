@@ -1,13 +1,12 @@
 """Load .env once, for every entry point.
 
-This lives here rather than in a module further down the tree because `python -m src.<anything>`
-imports this package first. It used to run as a side effect of importing the OpenAI client, which
-meant configuration silently depended on the import chain: `src.pipeline` reached the client and
-saw .env, while `src.notifier`, `src.report`, `src.comparer` and `src.drift` did not - so a
-configured SLACK_WEBHOOK_URL was ignored and env-based thresholds fell back to their defaults.
+Lives here because `python -m src.<anything>` imports this package first. Previously it ran as a
+side effect of importing the OpenAI client, so only entry points that reached the client saw
+.env - a configured SLACK_WEBHOOK_URL was silently ignored by the rest.
 
-Real environment variables take precedence (override=False), so CI secrets win over a local .env.
+Real environment variables win over .env, so CI secrets take precedence.
 """
+
 from dotenv import load_dotenv
 
 load_dotenv()

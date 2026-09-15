@@ -1,20 +1,27 @@
-from .clients.llm_client import get_client
-from pydantic import BaseModel, Field
 import os
+
+from pydantic import BaseModel, Field
+
+from .clients.llm_client import get_client
 
 # Single source of truth for the judge model: the same value is sent to the API and recorded
 # in run metadata, so a recorded run can never claim a judge model that wasn't actually used.
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "gpt-4o-mini")
 
-# Bump this whenever the judge prompt below changes in a way that could shift scores. It is
-# recorded in run metadata so runs scored under different judge instructions are identifiable
-# rather than silently compared as if they measured the same thing.
-# v1: original prompt (self-contradictory: claimed 1=most relevant, 5=least relevant)
-# v2: corrected scale, 1=worst .. 5=best, with per-level descriptions
+# Bump whenever the judge prompt changes in a way that could shift scores; recorded in run
+# metadata so runs scored under different instructions are not silently compared.
+# v1: self-contradictory (claimed 1=most relevant AND 1=worst). v2: 1=worst .. 5=best.
 JUDGE_PROMPT_VERSION = "v2"
+
+# The judge must not sample. At the API default of 1.0 it re-rolls each call, and since
+# passing hinges on `summary_score >= 4`, anything near that boundary becomes a coin flip:
+# 12 of 50 cases flipped across four identical runs before this was pinned.
+JUDGE_TEMPERATURE = float(os.getenv("JUDGE_TEMPERATURE", 0.0))
+
 
 class JudgeScore(BaseModel):
     score: int = Field(ge=1, le=5, description="Relevance score from 1 (worst) to 5 (best)")
+
 
 async def llm_as_judge(generated_summary: str, actual_summary: str, judge_client=None) -> int:
     """Takes in two summaries and returns a score of 1-5, where 1 is the worst match against
@@ -47,7 +54,8 @@ async def llm_as_judge(generated_summary: str, actual_summary: str, judge_client
     response = await judge_client.beta.chat.completions.parse(
         model=JUDGE_MODEL,
         messages=[{"role": "user", "content": prompt}],
-        response_format=JudgeScore
+        response_format=JudgeScore,
+        temperature=JUDGE_TEMPERATURE,
     )
 
     message = response.choices[0].message
@@ -59,5 +67,5 @@ async def llm_as_judge(generated_summary: str, actual_summary: str, judge_client
         raise ValueError("Failed to parse structured output from model response")
 
     result = message.parsed.score
-    
+
     return result

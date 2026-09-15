@@ -3,14 +3,15 @@
 Alerting is a side effect of a run that already succeeded and was saved. A bad webhook, a
 Slack outage, or a hung endpoint must never crash the pipeline or block it indefinitely.
 """
+
 import http.server
 import json
 import threading
 
 import pytest
 
+from src.models import CaseFlip, DriftResult
 from src.notifier import build_drift_slack_payload, build_slack_payload, send_slack_alert
-from src.config import CaseFlip, DriftResult
 
 
 @pytest.fixture
@@ -55,7 +56,10 @@ def test_successful_post_sends_json_payload(http_server, make_comparison):
     captured = []
     url = http_server(200, capture=captured)
 
-    assert send_slack_alert(make_comparison(status="critical"), "http://report", webhook_url=url) is True
+    assert (
+        send_slack_alert(make_comparison(status="critical"), "http://report", webhook_url=url)
+        is True
+    )
     headers, body = captured[0]
     assert headers["Content-Type"] == "application/json"
     assert "text" in json.loads(body)
@@ -67,13 +71,18 @@ def test_http_error_does_not_raise(http_server, make_comparison):
 
 
 def test_unreachable_host_does_not_raise(make_comparison):
-    assert send_slack_alert(make_comparison(), "http://report", webhook_url="http://127.0.0.1:1/nope") is False
+    assert (
+        send_slack_alert(make_comparison(), "http://report", webhook_url="http://127.0.0.1:1/nope")
+        is False
+    )
 
 
 def test_malformed_url_does_not_raise(make_comparison):
     """The Request() constructor validates the URL and raises before urlopen is reached,
     so the guarded region has to cover construction too, not just the network call."""
-    assert send_slack_alert(make_comparison(), "http://report", webhook_url="not-a-valid-url") is False
+    assert (
+        send_slack_alert(make_comparison(), "http://report", webhook_url="not-a-valid-url") is False
+    )
 
 
 def test_missing_webhook_is_skipped_not_an_error(monkeypatch, make_comparison):

@@ -4,6 +4,7 @@ These run the modules as scripts, which unit tests never exercise. Regression gu
 old-judge runs were archived, `python -m src.comparer` dumped a raw traceback on what is an
 ordinary state (no baselines yet) because __main__ didn't handle InsufficientRunHistory.
 """
+
 import os
 import subprocess
 import sys
@@ -62,7 +63,9 @@ def test_clis_do_not_require_an_api_key(empty_runs_repo):
         assert "OPENAI_API_KEY is required" not in result.stdout + result.stderr
 
 
-@pytest.mark.parametrize("module", ["src.notifier", "src.report", "src.comparer", "src.drift", "src.pipeline"])
+@pytest.mark.parametrize(
+    "module", ["src.notifier", "src.report", "src.comparer", "src.drift", "src.pipeline"]
+)
 def test_every_entry_point_loads_dotenv(module, tmp_path):
     """Regression test: load_dotenv() used to run as a side effect of importing the OpenAI
     client, so .env was only picked up by entry points that happened to reach it. src.pipeline
@@ -82,7 +85,10 @@ def test_every_entry_point_loads_dotenv(module, tmp_path):
 
     result = subprocess.run(
         [sys.executable, "-c", probe],
-        capture_output=True, text=True, cwd=str(tmp_path), env=environment,
+        capture_output=True,
+        text=True,
+        cwd=str(tmp_path),
+        env=environment,
     )
     assert "https://example.invalid/from-dotenv" in result.stdout, (
         f"{module} did not load .env\nstdout={result.stdout}\nstderr={result.stderr}"
@@ -92,7 +98,8 @@ def test_every_entry_point_loads_dotenv(module, tmp_path):
 def test_dataset_validator_cli_passes():
     result = subprocess.run(
         [sys.executable, "datasets/validate_golden_dataset.py"],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "Validated 50 cases" in result.stdout
