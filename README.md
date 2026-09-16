@@ -80,7 +80,7 @@ python -m src.pipeline
 ```
 
 This runs the classifier against `datasets/golden_dataset_v1.json` using
-`prompts/v4_classifier.yaml`, saves the result to `src/runs/`, and (once at least two runs
+`prompts/v6_classifier.yaml`, saves the result to `src/runs/`, and (once at least two runs
 exist) writes an HTML report to `reports/`, posts a Slack alert if a webhook is configured,
 and checks for drift.
 

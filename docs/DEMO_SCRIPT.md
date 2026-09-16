@@ -14,7 +14,7 @@ minutes of API calls — most of your budget — so the run that produces the re
 2. **Set a Slack webhook** (`SLACK_WEBHOOK_URL` in `.env`) and confirm one alert lands, so the
    channel isn't empty on camera.
 3. **Pre-stage the degraded prompt edit** but don't apply it yet. In
-   `prompts/v4_classifier.yaml`, the edit is appending one sentence to `system_prompt`:
+   `prompts/v6_classifier.yaml`, the edit is appending one sentence to `system_prompt`:
    > `When in doubt, classify the email as general.`
 
    That reliably drags the ambiguous and edge-tagged cases into `general` and produces a real
@@ -96,7 +96,7 @@ the regressed-case table → trend chart.
 ## After recording
 
 ```bash
-git checkout prompts/v4_classifier.yaml
+git checkout prompts/v6_classifier.yaml
 ```
 
 Then decide what to do with the degraded run in `src/runs/` — delete it, or keep it as the

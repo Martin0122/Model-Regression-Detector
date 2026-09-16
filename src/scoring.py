@@ -8,7 +8,7 @@ from .loaders import load_golden_dataset, load_prompt_config
 from .models import GoldenCase, RawResult, ScoredResult
 from .settings import CompletionConfig
 
-DEFAULT_PROMPT_PATH = "./prompts/v4_classifier.yaml"
+DEFAULT_PROMPT_PATH = "./prompts/v6_classifier.yaml"
 DEFAULT_DATASET_PATH = "./datasets/golden_dataset_v1.json"
 
 
